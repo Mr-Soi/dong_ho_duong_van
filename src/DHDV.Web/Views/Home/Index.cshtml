@@ -1,0 +1,140 @@
+@using DHDV.Web.Models
+@using System.Linq
+@using System.Text.RegularExpressions
+
+@{
+    ViewBag.Title = "Trang chủ";
+
+    // An toàn với mọi kiểu Model: kỳ vọng (List<Post>, List<Person>), fallback rỗng nếu khác
+    var tup = Model as ValueTuple<System.Collections.Generic.List<Post>, System.Collections.Generic.List<Person>>?;
+    var posts  = tup?.Item1 ?? new System.Collections.Generic.List<Post>();
+    var people = tup?.Item2 ?? new System.Collections.Generic.List<Person>();
+
+    string Strip(string? s) =>
+        Regex.Replace(System.Net.WebUtility.HtmlDecode(s ?? string.Empty), "<.*?>", "");
+
+    string H(System.DateTime? d) =>
+        d.HasValue && d.Value >= new System.DateTime(1950,1,1) ? d.Value.ToString("dd/MM/yyyy") : "—";
+
+    string ExcerptHtmlFirst(string? summary, string? content, int len = 200) {
+        var raw = string.IsNullOrWhiteSpace(summary) ? (content ?? string.Empty) : summary!;
+        var txt = Strip(raw);
+        return txt.Length > len ? txt.Substring(0, len) + "…" : txt;
+    }
+
+    var first = posts.FirstOrDefault();
+}
+
+@section Styles { }
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<!-- HERO -->
+<section class="hero rounded-4 mb-4 p-5 text-white" style="background:linear-gradient(135deg,#0d6efd,#6610f2)">
+  <div class="container px-0">
+    <h1 class="display-6 fw-bold mb-2">Cổng thông tin Dòng họ Dương Văn</h1>
+    <p class="lead mb-3">Kết nối gia phả, gìn giữ truyền thống, lan tỏa tri thức.</p>
+    <div class="d-flex gap-2">
+      <a class="btn btn-light btn-sm" href="/Posts">Bản tin</a>
+      <a class="btn btn-outline-light btn-sm" href="/Albums">Thư viện ảnh</a>
+    </div>
+  </div>
+</section>
+
+<div class="row g-4">
+  <!-- CỘT TRÁI: Bản tin -->
+  <div class="col-lg-8">
+    <h5 class="mb-3">Bản tin mới</h5>
+
+    @if (first is null)
+    {
+      <div class="alert alert-info">Chưa có bài viết.</div>
+    }
+    else
+    {
+      <!-- Bài nổi bật -->
+      <article class="card shadow-sm mb-3">
+        <div class="row g-0">
+          <div class="col-md-4">
+            <img class="img-fluid rounded-start w-100 h-100 object-fit-cover"
+                 src="@(string.IsNullOrWhiteSpace(first.CoverImage) ? "/img/uploads/logo_www.png" : first.CoverImage)"
+                 alt="cover">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <h5 class="card-title mb-2">
+                <a class="stretched-link text-decoration-none" href="/Posts/Details/@first.Id">@Strip(first.Title)</a>
+              </h5>
+              <div class="text-muted small mb-2">@H(first.PublishedAt)</div>
+              <p class="card-text mb-0">@ExcerptHtmlFirst(first.Summary, first.Content, 200)</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Danh sách còn lại -->
+      <div class="row g-3">
+        @foreach (var p in posts.Skip(1))
+        {
+          <div class="col-md-6">
+            <article class="card h-100 shadow-sm">
+              <div class="row g-0">
+                <div class="col-4">
+                  <img class="img-fluid rounded-start w-100 h-100 object-fit-cover"
+                       src="@(string.IsNullOrWhiteSpace(p?.CoverImage) ? "/img/uploads/logo_www.png" : p!.CoverImage)"
+                       alt="cover">
+                </div>
+                <div class="col-8">
+                  <div class="card-body py-2">
+                    <h6 class="card-title mb-1">
+                      <a class="stretched-link text-decoration-none" href="/Posts/Details/@p!.Id">@Strip(p!.Title)</a>
+                    </h6>
+                    <div class="text-muted small mb-1">@H(p!.PublishedAt)</div>
+                    <p class="card-text small mb-0">@ExcerptHtmlFirst(p!.Summary, p!.Content, 120)</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- CỘT PHẢI: Thành viên -->
+  <div class="col-lg-4">
+    <h5 class="mb-3">Một số thành viên</h5>
+
+    @{
+        var safePeople = people?.Where(x => x is not null).ToList() ?? new System.Collections.Generic.List<Person>();
+    }
+
+    @if (!safePeople.Any())
+    {
+      <div class="text-muted">Chưa có dữ liệu.</div>
+    }
+    else
+    {
+      <ul class="list-group list-group-flush shadow-sm rounded-3">
+        @foreach (var m in safePeople)
+        {
+          var full = m!.FullName ?? string.Empty;
+          var initial = string.IsNullOrWhiteSpace(full) ? "?" : full.Trim().Substring(0,1);
+          <li class="list-group-item d-flex align-items-center gap-2">
+            <div class="avatar bg-primary-subtle text-primary fw-bold rounded-circle d-inline-flex justify-content-center align-items-center"
+                 style="width:36px;height:36px">@initial</div>
+            <div class="flex-fill">
+              <a href="/People/Details/@m.Id" class="text-decoration-none">@full</a>
+              @{
+                  var genTxt = m.Generation?.ToString();
+                  if (!string.IsNullOrEmpty(genTxt))
+                  {
+                      <div class="small text-muted">Đời @genTxt</div>
+                  }
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

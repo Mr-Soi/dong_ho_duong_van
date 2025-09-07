@@ -1,0 +1,16 @@
+﻿# dotnet
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# publish artefacts
+publish/
+
+# uploads (giữ thư mục, bỏ ảnh)
+src/DHDV.Web/wwwroot/img/uploads/*
+!src/DHDV.Web/wwwroot/img/uploads/.gitkeep
+
+# backups, môi trường
+*.bak
+.env*

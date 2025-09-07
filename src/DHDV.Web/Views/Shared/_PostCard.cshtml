@@ -1,0 +1,27 @@
+﻿@using System.Text.RegularExpressions
+@model DHDV.Web.Models.Post
+@{
+    string Strip(string? s)=>Regex.Replace(System.Net.WebUtility.HtmlDecode(s??string.Empty), "<.*?>", "");
+    string H(System.DateTime? d)=> d.HasValue && d.Value>=new System.DateTime(1950,1,1)? d.Value.ToString("dd/MM/yyyy") : "—";
+    var titleTxt = Strip(Model?.Title);
+    var sum = string.IsNullOrWhiteSpace(Model?.Summary) ? (Model?.Content ?? string.Empty) : Model!.Summary!;
+    var excerpt = Strip(sum);
+    if (excerpt.Length>200) excerpt = excerpt.Substring(0,200) + "…";
+    var cover = string.IsNullOrWhiteSpace(Model?.CoverImage) ? "/img/uploads/logo_www.png" : Model!.CoverImage!;
+}
+<article class="card h-100 shadow-sm">
+  <div class="row g-0">
+    <div class="col-4">
+      <img class="img-fluid rounded-start w-100 h-100 object-fit-cover" src="@cover" alt="cover">
+    </div>
+    <div class="col-8">
+      <div class="card-body py-2">
+        <h6 class="card-title mb-1">
+          <a class="stretched-link text-decoration-none" href="/Posts/Details/@Model!.Id">@titleTxt</a>
+        </h6>
+        <div class="text-muted small mb-1">@H(Model!.PublishedAt)</div>
+        <p class="card-text small mb-0">@excerpt</p>
+      </div>
+    </div>
+  </div>
+</article>
