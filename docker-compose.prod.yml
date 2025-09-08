@@ -1,0 +1,69 @@
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dhdv_sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q "SELECT 1"
+          || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q "SELECT 1"
+          || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+    networks: [web]
+
+  web:
+    image: dhdv_web:prod
+    container_name: dhdv_web
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      AllowedHosts: ${AllowedHosts}
+      ConnectionStrings__Default: ${CONN_STR}
+      ConnectionStrings__DHDV: ${ConnectionStrings__DHDV}
+      ASPNETCORE_DETAILEDERRORS: "true"
+      Logging__LogLevel__Default: "Information"
+      ASPNETCORE_DATA_PROTECTION__DIRECTORY: "/root/.aspnet/DataProtection-Keys"
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS: ${ADMIN_PASS}
+    volumes:
+      - dp_keys:/root/.aspnet/DataProtection-Keys
+      - ./publish/web:/app:ro
+      - ./publish/web/wwwroot/img/uploads:/app/wwwroot/img/uploads
+
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks: [web]
+
+  cf:
+    image: cloudflare/cloudflared:latest
+    container_name: dhdv_cf
+    command: tunnel run --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      web:
+        condition: service_started
+    restart: unless-stopped
+    networks: [web]
+
+networks:
+  web: {}
+
+volumes:
+  mssql_data: {}
+  dp_keys: {}

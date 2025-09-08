@@ -1,0 +1,74 @@
+﻿@model DHDV.Web.Models.Post
+@{
+    ViewBag.Title = "Sửa bài viết";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string V(System.DateTime? d) => d.HasValue ? d.Value.ToString("yyyy-MM-ddTHH:mm") : "";
+}
+<h1 class="h5 mb-3">Sửa bài viết</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+  @Html.AntiForgeryToken()
+  <input type="hidden" asp-for="Id" />
+
+  <div class="mb-2">
+    <label class="form-label">Tiêu đề</label>
+    <input class="form-control" asp-for="Title" />
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Slug</label>
+    <input class="form-control" asp-for="Slug" />
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Ảnh bìa</label>
+    <div class="input-group">
+      <input id="CoverImage" class="form-control" asp-for="CoverImage" />
+      <input id="fileUp" type="file" class="form-control" accept="image/*" />
+      <button id="btnUp" type="button" class="btn btn-outline-secondary">Tải lên</button>
+    </div>
+    <div class="form-text">Hỗ trợ: .jpg, .jpeg, .png, .webp, .gif</div>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Ngày đăng</label>
+    <input class="form-control" type="datetime-local" name="PublishedAt" value="@V(Model?.PublishedAt)" />
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Tóm tắt</label>
+    <textarea class="form-control" asp-for="Summary" rows="3"></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Nội dung</label>
+    <textarea class="form-control" asp-for="Content" rows="12"></textarea>
+  </div>
+
+  <button class="btn btn-primary">Lưu</button>
+  <a class="btn btn-secondary" href="/admin/posts">Hủy</a>
+</form>
+
+<script>
+(function(){
+  const btn = document.getElementById('btnUp');
+  const fi  = document.getElementById('fileUp');
+  const out = document.getElementById('CoverImage');
+
+  async function upload() {
+    if (!fi.files || fi.files.length === 0) return alert('Chọn tệp ảnh');
+    const fd = new FormData();
+    fd.append('file', fi.files[0]);
+
+    const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+    const headers = tokenEl ? {'RequestVerificationToken': tokenEl.value} : {};
+
+    const res = await fetch('/admin/upload/image', { method: 'POST', body: fd, headers });
+    if (!res.ok) { alert('Upload lỗi'); return; }
+    const j = await res.json();
+    out.value = j.path || '';
+  }
+
+  btn?.addEventListener('click', upload);
+})();
+</script>
