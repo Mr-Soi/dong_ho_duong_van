@@ -13,7 +13,6 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        // Id danh mục Bản tin
         var catId = await _db.Categories
             .Where(c => c.Slug == "ban-tin" || c.Slug == "tin-tuc" || c.Name == "Bản tin" || c.Name == "Tin tức")
             .Select(c => c.Id).FirstOrDefaultAsync();
@@ -29,7 +28,6 @@ public class HomeController : Controller
                            .Take(9)
                            .Include(p => p.Category)
                            .ToListAsync(),
-
             People = await _db.Persons
                               .OrderByDescending(p => p.Id)
                               .Take(10)
@@ -37,4 +35,8 @@ public class HomeController : Controller
         };
         return View(vm);
     }
+
+    public IActionResult Intro()   => View();
+    public IActionResult Charter() => View();
+    public IActionResult Contact() => View();
 }

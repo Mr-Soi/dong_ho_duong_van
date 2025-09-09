@@ -1,11 +1,12 @@
-@model YourApp.Helpers.SeoVM
-<title>@Model.Title</title>
-<meta name="description" content="@Model.Description">
-<link rel="canonical" href="@Model.Url">
-<meta property="og:type" content="article" />
-<meta property="og:title" content="@Model.Title" />
-<meta property="og:description" content="@Model.Description" />
-<meta property="og:url" content="@Model.Url" />
-<script type="application/ld+json">
-@Html.Raw(YourApp.Helpers.SeoJson.NewsArticle(Model.Title, Model.Description, Model.Url, Model.Published))
-</script>
+@{
+  var title = (string?)ViewData["Title"] ?? "Dòng họ Dương Văn";
+  var desc  = (string?)ViewData["Description"] ?? title;
+  var img   = (string?)ViewData["Image"] ?? Url.Content("~/img/cover.png");
+  var url   = (string?)ViewData["Url"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}/";
+}
+<meta name="description" content="@desc" />
+<meta property="og:title" content="@title" />
+<meta property="og:description" content="@desc" />
+<meta property="og:image" content="@img" />
+<meta property="og:url" content="@url" />
+<meta property="og:type" content="website" />
