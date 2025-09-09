@@ -3,67 +3,48 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: dhdv_sql
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: "Express"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-    ports:
-      - "1433:1433"
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - >-
-          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q "SELECT 1"
-          || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q "SELECT 1"
-          || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 40s
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
+      - TZ=Asia/Bangkok
+    ports: ["1433:1433"]
     volumes:
       - mssql_data:/var/opt/mssql
+      - ./backup:/var/opt/mssql/backup
+    networks: [appnet]
     restart: unless-stopped
-    networks: [web]
 
   web:
-    image: dhdv_web:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: dhdv_web
-    depends_on:
-      sql:
-        condition: service_healthy
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
-      AllowedHosts: ${AllowedHosts}
-      ConnectionStrings__Default: ${CONN_STR}
-      ConnectionStrings__DHDV: ${ConnectionStrings__DHDV}
-      ASPNETCORE_DETAILEDERRORS: "true"
-      Logging__LogLevel__Default: "Information"
-      ASPNETCORE_DATA_PROTECTION__DIRECTORY: "/root/.aspnet/DataProtection-Keys"
-      ADMIN_USER: ${ADMIN_USER}
-      ADMIN_PASS: ${ADMIN_PASS}
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=True;TrustServerCertificate=True
+      - TZ=Asia/Bangkok
+    ports: ["8080:8080"]
     volumes:
-      - dp_keys:/root/.aspnet/DataProtection-Keys
-      - ./publish/web:/app:ro
-      - ./publish/web/wwwroot/img/uploads:/app/wwwroot/img/uploads
-
-    ports:
-      - "8080:8080"
+      - ./keys:/root/.aspnet/DataProtection-Keys
+    depends_on: [sql]
+    healthcheck:
+      test: ["CMD","curl","-fsS","http://localhost:8080/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [appnet]
     restart: unless-stopped
-    networks: [web]
 
   cf:
     image: cloudflare/cloudflared:latest
     container_name: dhdv_cf
-    command: tunnel run --token ${CF_TUNNEL_TOKEN}
-    depends_on:
-      web:
-        condition: service_started
+    command: ["tunnel","--no-autoupdate","run","--token","${TUNNEL_TOKEN}"]
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      - TZ=Asia/Bangkok
+    depends_on: [web]
+    networks: [appnet]
     restart: unless-stopped
-    networks: [web]
 
-networks:
-  web: {}
-
-volumes:
-  mssql_data: {}
-  dp_keys: {}
+networks: { appnet: {} }
+volumes:   { mssql_data: {} }
