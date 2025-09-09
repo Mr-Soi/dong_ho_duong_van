@@ -14,3 +14,5 @@ src/DHDV.Web/wwwroot/img/uploads/*
 # backups, môi trường
 *.bak
 .env*
+
+handoff/*.tar
