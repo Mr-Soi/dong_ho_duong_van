@@ -16,3 +16,10 @@ src/DHDV.Web/wwwroot/img/uploads/*
 .env*
 
 handoff/*.tar
+
+# large artefacts
+/handoff/*.tar
+/handoff/*.zip
+/publish/
+/backup/*.bak
+/db/*.zip
