@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /__db
+Disallow: /_routes
+Disallow: /health
+Sitemap: https://donghoduongvan.com/sitemap.xml

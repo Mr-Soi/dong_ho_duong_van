@@ -1,0 +1,50 @@
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dhdv_sql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
+      - TZ=Asia/Bangkok
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./backup:/var/opt/mssql/backup
+    networks: [appnet]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dhdv_web
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - DOTNET_ENVIRONMENT=Production
+      - TZ=Asia/Bangkok
+      - ConnectionStrings__DefaultConnection=Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True
+      - ConnectionStrings__Default=Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True
+      - ConnectionStrings__AppDb=Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True
+    ports:
+      - "8080:8080"
+    depends_on: [sql]
+    networks: [appnet]
+    restart: unless-stopped
+
+  cf:
+    image: cloudflare/cloudflared:latest
+    container_name: dhdv_cf
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${TUNNEL_TOKEN}"]
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      - TZ=Asia/Bangkok
+    depends_on: [web]
+    networks: [appnet]
+    restart: unless-stopped
+
+networks:
+  appnet:
+
+volumes:
+  mssql_data:

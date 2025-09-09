@@ -1,0 +1,18 @@
+@using System.Linq
+@model IEnumerable<DHDV.Web.Models.Post>
+
+@{
+    var posts = Model ?? Enumerable.Empty<DHDV.Web.Models.Post>();
+}
+
+@if (!posts.Any())
+{
+    <div class="text-muted">Chưa có bài viết.</div>
+}
+else
+{
+    foreach (var post in posts)
+    {
+        <partial name="_PostCard" model="post" />
+    }
+}

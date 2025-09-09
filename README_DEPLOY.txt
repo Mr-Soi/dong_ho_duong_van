@@ -1,0 +1,1 @@
+Put files next to docker-compose.yml, edit .env.prod, then run:\n  powershell -ExecutionPolicy Bypass -File .\\deploy-prod.ps1 -RunImport\nPoint DNS for @ and www to the host IP.\n

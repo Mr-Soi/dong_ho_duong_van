@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    ".project_snapshot.json": {
+      "type": "null"
+    },
+    "project_structure.json": {
+      "type": "null"
+    },
+    "project_structure.md": {
+      "type": "null"
+    },
+    "project_structure_diff.md": {
+      "type": "null"
+    }
+  },
+  "required": [
+    ".project_snapshot.json",
+    "project_structure.json",
+    "project_structure.md",
+    "project_structure_diff.md"
+  ]
+}

@@ -1,0 +1,7 @@
+/* Logo */
+.navbar-brand .logo{height:32px;width:auto}
+@media (max-width:576px){.navbar-brand .logo{height:28px}}
+
+/* Card cover fallback size */
+.post-cover{width:100%;height:auto;max-height:240px;object-fit:cover;border-radius:.5rem}
+.person-avatar{width:96px;height:96px;object-fit:cover;border-radius:50%}

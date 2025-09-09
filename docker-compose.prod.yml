@@ -19,10 +19,10 @@ services:
       dockerfile: Dockerfile
     container_name: dhdv_web
     environment:
-      - ASPNETCORE_URLS=http://+:8080
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=True;TrustServerCertificate=True
-      - TZ=Asia/Bangkok
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__DefaultConnection: "Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=True;TrustServerCertificate=True"
+      TZ: "Asia/Bangkok"
     ports: ["8080:8080"]
     volumes:
       - ./keys:/root/.aspnet/DataProtection-Keys

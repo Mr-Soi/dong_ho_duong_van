@@ -1,0 +1,15 @@
+﻿Id,Title,Slug,Description,CreatedAt,UpdatedAt,IsDeleted,TitleNorm
+1,Giỗ tổ năm 2013,giỗ-tổ-năm-2013,NULL,NULL,NULL,0,giỗ tổ năm 2013
+2,Giỗ tổ năm 2014,giỗ-tổ-năm-2014,NULL,NULL,NULL,0,giỗ tổ năm 2014
+3,Giỗ tổ năm 2015,giỗ-tổ-năm-2015,NULL,NULL,NULL,0,giỗ tổ năm 2015
+4,Giỗ tổ năm 2016,giỗ-tổ-năm-2016,NULL,NULL,NULL,0,giỗ tổ năm 2016
+5,Giỗ tổ năm 2017,giỗ-tổ-năm-2017,NULL,NULL,NULL,0,giỗ tổ năm 2017
+6,Giỗ tổ năm 2018,giỗ-tổ-năm-2018,NULL,NULL,NULL,0,giỗ tổ năm 2018
+7,Khuyến hỞc 2015,khuyến-hỞc-2015,,NULL,NULL,0,khuyến hỞc 2015
+8,Khuyến hỞc 2016,khuyến-hỞc-2016,,NULL,NULL,0,khuyến hỞc 2016
+9,Lễ khánh thành nhà thỞ,lễ-khánh-thành-nhà-thỞ,NULL,NULL,NULL,0,lễ khánh thành nhà thỞ
+10,Lưu trữ,lưu-trữ,Lựa chỞn Album,NULL,NULL,0,lưu trữ
+11,Theo dòng sự kiện,theo-dòng-sự-kiện,NULL,NULL,NULL,0,theo dòng sự kiện
+12,Thơ bác Sy,thơ-bác-sy,NULL,NULL,NULL,0,thơ bác sy
+13,Thùng rác,thùng-rác,,NULL,NULL,0,thùng rác
+14,Tư liệu,tư-liệu,NULL,NULL,NULL,0,tư liệu

@@ -1,0 +1,33 @@
+@model object
+@{
+    string avatar = Url.Content("~/img/avatar.png");
+    var t   = Model.GetType();
+    var id  = t.GetProperty("Id")?.GetValue(Model);
+    var name = Convert.ToString(
+        t.GetProperty("DisplayName")?.GetValue(Model)
+        ?? t.GetProperty("Name")?.GetValue(Model)
+        ?? t.GetProperty("Alias")?.GetValue(Model)
+    ) ?? $"#{id}";
+    var gen = Convert.ToString(t.GetProperty("Generation")?.GetValue(Model) ?? "");
+    var av  = Convert.ToString(
+        t.GetProperty("AvatarUrl")?.GetValue(Model)
+        ?? t.GetProperty("Avatar")?.GetValue(Model)
+    );
+    var fatherId = t.GetProperty("FatherId")?.GetValue(Model);
+    var motherId = t.GetProperty("MotherId")?.GetValue(Model);
+}
+<section class="mx-auto" style="max-width:900px">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <img src="@(string.IsNullOrWhiteSpace(av)?avatar:av)" alt="@name" class="person-avatar" />
+        <div>
+            <h2 class="mb-1">@name</h2>
+            @if(!string.IsNullOrWhiteSpace(gen)){<div class="text-muted">Đời @gen</div>}
+        </div>
+    </div>
+
+    <div class="card p-3">
+        <div class="fw-semibold mb-2">Cha mẹ</div>
+        @if (fatherId != null){ <div>Cha: <a asp-action="Details" asp-route-id="@fatherId">Xem</a></div> }
+        @if (motherId != null){ <div>Mẹ: <a asp-action="Details" asp-route-id="@motherId">Xem</a></div> }
+    </div>
+</section>

@@ -1,0 +1,19 @@
+﻿IF OBJECT_ID('tempdb..#A','U') IS NOT NULL DROP TABLE #A;
+CREATE TABLE #A(Id NVARCHAR(MAX), Title NVARCHAR(MAX), Slug NVARCHAR(MAX), Description NVARCHAR(MAX));
+BULK INSERT #A FROM '/tmp/Albums.real.utf16.csv'
+WITH (FIRSTROW=2, FIELDTERMINATOR=',', ROWTERMINATOR='\r\n', DATAFILETYPE='widechar', TABLOCK);
+
+SET IDENTITY_INSERT dbo.Albums ON;
+MERGE dbo.Albums AS T
+USING (
+  SELECT TRY_CONVERT(INT,NULLIF(Id,N'')) AS Id,
+         NULLIF(Title,N'') AS Title,
+         NULLIF(Description,N'') AS Description
+  FROM #A
+  WHERE TRY_CONVERT(INT,NULLIF(Id,N'')) IS NOT NULL
+) S
+ON T.Id=S.Id
+WHEN MATCHED THEN UPDATE SET T.Name=S.Title, T.Description=S.Description
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT(Id,Name,Description,CreatedAt) VALUES(S.Id,S.Title,S.Description,SYSUTCDATETIME());
+SET IDENTITY_INSERT dbo.Albums OFF;

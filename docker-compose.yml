@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dhdv_sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    # docker-compose.prod.yml (service: sql)
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+    networks: [web]
+
+  web:
+    image: dhdv_web:prod
+    container_name: dhdv_web
+    environment:
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ConnectionStrings__DHDV: ${ConnectionStrings__DHDV}
+      DB_NAME: ${DB_NAME}
+      AUTO_MIGRATE: ${AUTO_MIGRATE}
+    depends_on:
+      sql:
+        condition: service_healthy
+    ports:
+      - "8080:8080" # mở local; nếu dùng Caddy/CF vẫn giữ để debug
+    restart: unless-stopped
+    networks: [web]
+
+  import:
+    image: dhdv_import:prod
+    container_name: dhdv_import
+    environment:
+      OLD_CS: ${OLD_CS}
+      NEW_CS: ${ConnectionStrings__DHDV}
+    profiles: ["import"]   # chỉ chạy khi gọi profile hoặc docker compose run
+    networks: [web]
+
+  # Reverse proxy có TLS tự động (chạy mặc định)
+  caddy:
+    image: caddy:2
+    container_name: dhdv_caddy
+    environment:
+      CADDY_EMAIL: ${CADDY_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_started
+    restart: unless-stopped
+    networks: [web]
+
+  # Cloudflared tunnel (chỉ chạy khi bật profile cf)
+  cf:
+    image: cloudflare/cloudflared:latest
+    container_name: dhdv_cf
+    command: tunnel run --token ${CF_TUNNEL_TOKEN}
+    profiles: ["cf"]
+    depends_on:
+      web:
+        condition: service_started
+    restart: unless-stopped
+    networks: [web]
+
+networks:
+  web: {}
+
+volumes:
+  mssql_data: {}
+  caddy_data: {}
+  caddy_config: {}

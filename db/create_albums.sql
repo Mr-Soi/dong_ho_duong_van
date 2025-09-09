@@ -1,0 +1,22 @@
+﻿IF OBJECT_ID('dbo.Albums','U') IS NULL
+BEGIN
+  CREATE TABLE dbo.Albums(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(300) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+  );
+END;
+
+IF OBJECT_ID('dbo.Photos','U') IS NULL
+BEGIN
+  CREATE TABLE dbo.Photos(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    AlbumId INT NOT NULL,
+    Path NVARCHAR(1000) NOT NULL,
+    Caption NVARCHAR(500) NULL
+  );
+  CREATE INDEX IX_Photos_AlbumId ON dbo.Photos(AlbumId);
+  ALTER TABLE dbo.Photos
+    ADD CONSTRAINT FK_Photos_Albums FOREIGN KEY (AlbumId) REFERENCES dbo.Albums(Id);
+END;

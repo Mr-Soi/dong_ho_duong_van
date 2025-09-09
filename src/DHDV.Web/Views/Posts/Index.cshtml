@@ -1,0 +1,29 @@
+@model IEnumerable<DHDV.Web.Models.Post>
+@{
+    ViewData["Title"] = "Bản tin";
+    string Fallback = Url.Content("~/img/cover.png");
+}
+<h2 class="mb-3">Bản tin</h2>
+
+<div class="row g-3">
+@foreach (var p in Model)
+{
+    var img = string.IsNullOrWhiteSpace(p?.CoverImage) ? Fallback : p.CoverImage;
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="row g-0 align-items-center">
+                <div class="col-12 col-md-3 p-2">
+                    <img src="@img" alt="cover" loading="lazy" class="post-cover" />
+                </div>
+                <div class="col-12 col-md-9 p-3">
+                    <a asp-controller="Posts" asp-action="Details" asp-route-id="@p?.Id" class="fw-semibold h6 d-block">@p?.Title</a>
+                    <div class="text-muted small">
+                        @(p?.PublishedAt is DateTime dt ? dt.ToString("dd/MM/yyyy") : "")
+                    </div>
+                    <p class="mb-0">@p?.Summary</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>

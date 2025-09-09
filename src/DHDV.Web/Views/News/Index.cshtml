@@ -1,0 +1,24 @@
+@using System.Linq
+@model IEnumerable<DHDV.Web.Models.Post>
+
+@{
+    var posts = Model ?? Enumerable.Empty<DHDV.Web.Models.Post>();
+}
+
+<h1 class="mb-3">Bản tin</h1>
+
+@if (!posts.Any())
+{
+    <div class="alert alert-info">Chưa có bài viết.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var post in posts)
+        {
+            <div class="col-md-6">
+                <partial name="_PostCard" model="post" />
+            </div>
+        }
+    </div>
+}

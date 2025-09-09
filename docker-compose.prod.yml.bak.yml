@@ -1,0 +1,68 @@
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dhdv_sql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+    volumes:
+      - sql:/var/opt/mssql
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $${MSSQL_SA_PASSWORD} -C -Q 'SELECT 1' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
+    networks: [ web ]
+
+  import:
+    image: dhdv_import:prod          # bạn đã build: dhdv_import:prod
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      - OLD_CS=${OLD_CS}
+      - NEW_CS=${NEW_CS}
+      - ETL_CONFIG=${ETL_CONFIG}
+    volumes:
+      - ${ETL_DIR}:/etl:ro
+    restart: "no"
+    networks: [ web ]
+
+  web:
+    image: dhdv_web:prod             # bạn đã build: dhdv_web:prod
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__DHDV=${NEW_CS}
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - ./src/DHDV.Web/wwwroot/img/uploads:/app/wwwroot/img/uploads    
+    ports:
+      - "8080:8080"                  # tiện test nội bộ; có thể bỏ khi chỉ chạy qua caddy/cf
+    restart: unless-stopped
+    networks: [ web ]
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on: [ web ]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    restart: unless-stopped
+    networks: [ web ]
+
+  cf:
+    image: cloudflare/cloudflared:latest
+    depends_on: [ web ]
+    command: [ "tunnel", "run", "--token", "${CF_TUNNEL_TOKEN}" ]
+    restart: unless-stopped
+    networks: [ web ]
+
+volumes:
+  sql:
+
+networks:
+  web:

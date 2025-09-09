@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="500" viewBox="0 0 1400 500" role="img" aria-label="Logo Dòng họ Dương Văn">
+
+      <path d="
+        M 300 129.0
+        C 325.5 154.5, 317.0 180, 300 197.0
+        C 278.75 180, 287.25 158.75, 300 129.0
+        Z" fill="#C6A75E" stroke="none"/>
+    
+      <path d="
+        M 300 150.25
+        C 312.75 167.25, 308.5 180, 300 186.8
+        C 289.8 180, 293.2 169.8, 300 150.25
+        Z" fill="#FFFFFF" opacity="0.15" stroke="none"/>
+    <line x1="332.6" y1="101.7" x2="342.3" y2="93.5" stroke="#C6A75E" stroke-width="2.55"/>
+<line x1="342.5" y1="129.0" x2="355.2" y2="129.0" stroke="#C6A75E" stroke-width="2.55"/>
+<line x1="332.6" y1="156.3" x2="342.3" y2="164.5" stroke="#C6A75E" stroke-width="2.55"/>
+<rect x="288.0" y="230" width="24" height="80" rx="3.5999999999999996" fill="#B7111B"/>
+<text x="300" y="300" font-family="Noto Serif, 'Times New Roman', serif" font-weight="800" font-size="100" fill="#B7111B" text-anchor="middle" letter-spacing="2">DV</text>
+<text x="780" y="220" font-family="Noto Serif, 'Times New Roman', serif" font-weight="800" font-size="90" fill="#B7111B" text-anchor="middle" letter-spacing="2">DƯƠNG VĂN</text>
+<text x="780" y="280" font-family="Be Vietnam Pro, Arial, sans-serif" font-weight="600" font-size="34" fill="#222222" text-anchor="middle" opacity="0.95">GIỮ LỬA GIA PHONG — MỞ ĐƯỜNG TRI THỨC</text>
+</svg>

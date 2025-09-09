@@ -1,0 +1,4 @@
+- .project_snapshot.json
+- project_structure.json
+- project_structure.md
+- project_structure_diff.md

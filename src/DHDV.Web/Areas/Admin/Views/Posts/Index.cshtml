@@ -1,29 +1,37 @@
-﻿@model System.Collections.Generic.IEnumerable<DHDV.Web.Models.Post>
+﻿@model IEnumerable<DHDV.Web.Models.Post>
+@using System.Linq
 @using System.Text.RegularExpressions
-@functions{
-    string Strip(string? s) =>
-        Regex.Replace(System.Net.WebUtility.HtmlDecode(s ?? string.Empty), "<.*?>", "");
-    string H(System.DateTime? d) =>
-        d.HasValue && d.Value >= new System.DateTime(1950,1,1) ? d.Value.ToString("dd/MM/yyyy") : "—";
-}
+
 @{
-    ViewBag.Title = "Quản lý bài viết";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    string Strip(string? s)=>Regex.Replace(System.Net.WebUtility.HtmlDecode(s??string.Empty), "<.*?>", "");
+    string Excerpt(string? sum, string? content, int len=240){
+        var raw = string.IsNullOrWhiteSpace(sum)? (content??"") : sum!;
+        var t = Strip(raw); return t.Length>len? t.Substring(0,len)+"…" : t;
+    }
+    string H(System.DateTime? d)=> d.HasValue && d.Value>=new System.DateTime(1950,1,1)? d.Value.ToString("dd/MM/yyyy") : "—";
+    var items = Model ?? Enumerable.Empty<DHDV.Web.Models.Post>();
 }
-<h1 class="h4 mb-3">Bài viết</h1>
-<table class="table table-sm align-middle">
-  <thead>
-    <tr><th style="width:90px">ID</th><th>Tiêu đề</th><th style="width:140px">Ngày</th><th style="width:90px"></th></tr>
-  </thead>
-  <tbody>
-  @foreach (var p in Model ?? Enumerable.Empty<DHDV.Web.Models.Post>())
-  {
-    <tr>
-      <td>@p.Id</td>
-      <td class="text-truncate" style="max-width:640px">@Strip(p.Title)</td>
-      <td>@H(p.PublishedAt)</td>
-      <td><a class="btn btn-sm btn-outline-primary" href="/admin/posts/edit/@p.Id">Sửa</a></td>
-    </tr>
-  }
-  </tbody>
-</table>
+
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<h1 class="mb-3">Bản tin</h1>
+
+@if (!items.Any())
+{
+    <div class="alert alert-info">Chưa có bài viết.</div>
+}
+else
+{
+    <div class="list-group">
+    @foreach (var p in items)
+    {
+        <a class="list-group-item list-group-item-action" href="/Posts/Details/@p.Id">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">@Strip(p.Title)</h6>
+                <small>@H(p.PublishedAt)</small>
+            </div>
+            <p class="mb-1">@Excerpt(p.Summary, p.Content)</p>
+        </a>
+    }
+    </div>
+}

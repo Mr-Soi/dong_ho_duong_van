@@ -1,0 +1,11 @@
+@model YourApp.Helpers.SeoVM
+<title>@Model.Title</title>
+<meta name="description" content="@Model.Description">
+<link rel="canonical" href="@Model.Url">
+<meta property="og:type" content="article" />
+<meta property="og:title" content="@Model.Title" />
+<meta property="og:description" content="@Model.Description" />
+<meta property="og:url" content="@Model.Url" />
+<script type="application/ld+json">
+@Html.Raw(YourApp.Helpers.SeoJson.NewsArticle(Model.Title, Model.Description, Model.Url, Model.Published))
+</script>

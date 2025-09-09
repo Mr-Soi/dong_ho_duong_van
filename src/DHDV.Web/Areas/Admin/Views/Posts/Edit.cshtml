@@ -1,8 +1,14 @@
-﻿@model DHDV.Web.Models.Post
+﻿<input class="form-control" asp-for="Title" />
+<input class="form-control" asp-for="Slug" />
+<input class="form-control" asp-for="CoverImage" id="CoverImage" />
+<input class="form-control" asp-for="PublishedAt" type="datetime-local" />
+<textarea class="form-control" asp-for="Summary" rows="3"></textarea>
+<textarea class="form-control" asp-for="Content" rows="12"></textarea>
+
+@model DHDV.Web.Models.Post
 @{
     ViewBag.Title = "Sửa bài viết";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    string V(System.DateTime? d) => d.HasValue ? d.Value.ToString("yyyy-MM-ddTHH:mm") : "";
 }
 <h1 class="h5 mb-3">Sửa bài viết</h1>
 
@@ -23,7 +29,7 @@
   <div class="mb-2">
     <label class="form-label">Ảnh bìa</label>
     <div class="input-group">
-      <input id="CoverImage" class="form-control" asp-for="CoverImage" />
+      <input class="form-control" asp-for="CoverImage" id="CoverImage" />
       <input id="fileUp" type="file" class="form-control" accept="image/*" />
       <button id="btnUp" type="button" class="btn btn-outline-secondary">Tải lên</button>
     </div>
@@ -32,7 +38,7 @@
 
   <div class="mb-2">
     <label class="form-label">Ngày đăng</label>
-    <input class="form-control" type="datetime-local" name="PublishedAt" value="@V(Model?.PublishedAt)" />
+    <input class="form-control" asp-for="PublishedAt" type="datetime-local" />
   </div>
 
   <div class="mb-2">
@@ -51,24 +57,26 @@
 
 <script>
 (function(){
+  // auto-slug nếu slug trống
+  const toSlug = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                   .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const t = document.getElementById('Title') || document.querySelector('input[name="Title"]');
+  const s = document.getElementById('Slug')  || document.querySelector('input[name="Slug"]');
+  t?.addEventListener('blur', ()=>{ if(s && !s.value) s.value = toSlug(t.value); });
+
+  // upload ảnh bìa
   const btn = document.getElementById('btnUp');
   const fi  = document.getElementById('fileUp');
   const out = document.getElementById('CoverImage');
-
   async function upload() {
     if (!fi.files || fi.files.length === 0) return alert('Chọn tệp ảnh');
-    const fd = new FormData();
-    fd.append('file', fi.files[0]);
-
+    const fd = new FormData(); fd.append('file', fi.files[0]);
     const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
     const headers = tokenEl ? {'RequestVerificationToken': tokenEl.value} : {};
-
     const res = await fetch('/admin/upload/image', { method: 'POST', body: fd, headers });
     if (!res.ok) { alert('Upload lỗi'); return; }
-    const j = await res.json();
-    out.value = j.path || '';
+    const j = await res.json(); out.value = j.path || '';
   }
-
   btn?.addEventListener('click', upload);
 })();
 </script>

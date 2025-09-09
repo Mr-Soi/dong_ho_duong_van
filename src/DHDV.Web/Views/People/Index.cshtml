@@ -1,0 +1,35 @@
+@model System.Collections.IEnumerable
+@{
+    ViewData["Title"] = "Gia phả";
+    string avatar = Url.Content("~/img/avatar.png");
+}
+<h2 class="mb-3">Gia phả</h2>
+
+<div class="row g-3">
+@foreach (var obj in Model)
+{
+    var t   = obj.GetType();
+    var id  = t.GetProperty("Id")?.GetValue(obj);
+    var gen = Convert.ToString(t.GetProperty("Generation")?.GetValue(obj) ?? "");
+    var name = Convert.ToString(
+        t.GetProperty("DisplayName")?.GetValue(obj)
+        ?? t.GetProperty("Name")?.GetValue(obj)
+        ?? t.GetProperty("Alias")?.GetValue(obj)
+    ) ?? $"#{id}";
+    var av = Convert.ToString(
+        t.GetProperty("AvatarUrl")?.GetValue(obj)
+        ?? t.GetProperty("Avatar")?.GetValue(obj)
+    );
+    <div class="col-12 col-md-6 col-lg-4">
+        <a asp-controller="People" asp-action="Details" asp-route-id="@id" class="card shadow-sm text-decoration-none text-dark p-3">
+            <div class="d-flex align-items-center gap-3">
+                <img src="@(string.IsNullOrWhiteSpace(av)?avatar:av)" alt="@name" class="person-avatar" loading="lazy" />
+                <div>
+                    <div class="fw-semibold">@name</div>
+                    @if(!string.IsNullOrWhiteSpace(gen)){<div class="text-muted small">Đời @gen</div>}
+                </div>
+            </div>
+        </a>
+    </div>
+}
+</div>

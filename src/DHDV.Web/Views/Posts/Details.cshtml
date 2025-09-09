@@ -1,0 +1,22 @@
+@model DHDV.Web.Models.Post
+@{
+    ViewData["Title"] = Model?.Title ?? "Bài viết";
+    string cover = string.IsNullOrWhiteSpace(Model?.CoverImage) ? Url.Content("~/img/cover.png") : Model!.CoverImage;
+
+    var m = (object)Model;
+    var t = m.GetType();
+    string content =
+        Convert.ToString(t.GetProperty("ContentHtml")?.GetValue(m))
+        ?? Convert.ToString(t.GetProperty("Content")?.GetValue(m))
+        ?? Convert.ToString(t.GetProperty("Body")?.GetValue(m))
+        ?? Convert.ToString(t.GetProperty("Description")?.GetValue(m))
+        ?? "";
+}
+<article class="mx-auto" style="max-width:900px">
+    <h1 class="mb-3">@Model?.Title</h1>
+    <div class="text-muted mb-3">
+        @(Model?.PublishedAt is DateTime dt ? dt.ToString("dd/MM/yyyy") : "")
+    </div>
+    <img src="@cover" alt="cover" class="post-cover mb-4" />
+    <div class="content">@Html.Raw(content)</div>
+</article>

@@ -1,0 +1,11 @@
+﻿Id,Name,Slug,CreatedAt,UpdatedAt,IsDeleted,NameNorm
+4,Văn thơ,van-tho,2025-08-24 01:35:47.0041782,NULL,0,văn thơ
+5,Dòng lưu truyền,dong-luu-truyen,2025-08-24 01:35:47.0041782,NULL,0,dòng lưu truyền
+6,Tộc ước,toc-uoc,2025-08-24 01:35:47.0041782,NULL,0,tộc ước
+7,Bản tin,ban-tin,2025-08-24 01:35:47.0041782,NULL,0,bản tin
+8,Bổ sung gia phả,bo-sung-gia-pha,2025-08-24 01:35:47.0041782,NULL,0,bổ sung gia phả
+9,Theo dòng sự kiện,theo-dong-su-kien,2025-08-24 01:35:47.0041782,NULL,0,theo dòng sự kiện
+10,Quỹ Dòng họ Dương Văn,quy-dong-ho-duong-van,2025-08-24 01:35:47.0041782,NULL,0,quỹ dòng họ dương văn
+11,Khuyến học - Phúc Thọ,khuyen-hoc-phuc-tho,2025-08-24 01:35:47.0041782,NULL,0,khuyến học - phúc thọ
+12,Nhật ký Dòng họ,nhat-ky-dong-ho,2025-08-24 01:35:47.0041782,NULL,0,nhật ký dòng họ
+13,Khác,khac,2025-08-24 06:47:24.8559165,NULL,0,khác

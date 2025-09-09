@@ -1,0 +1,8 @@
+﻿@using System.Text.RegularExpressions
+@{
+    string Strip(string s)=>Regex.Replace(System.Net.WebUtility.HtmlDecode(s??""), "<.*?>", "");
+    string H(DateTime? d)=> d.HasValue && d.Value>=new DateTime(1950,1,1)? d.Value.ToString("dd/MM/yyyy") : "—";
+}
+<h1>@Strip(Model.Title)</h1>
+<div class="text-muted">@H(Model.PublishedAt)</div>
+<article>@Html.Raw(Model.Content??"")</article>

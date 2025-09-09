@@ -1,0 +1,62 @@
+
+USE master;
+IF DB_ID('dhdv') IS NULL CREATE DATABASE dhdv;
+GO
+USE dhdv;
+IF OBJECT_ID('dbo.Categories') IS NULL
+CREATE TABLE dbo.Categories(Id INT IDENTITY PRIMARY KEY, Name NVARCHAR(200) NOT NULL UNIQUE, Slug NVARCHAR(160) NOT NULL UNIQUE);
+
+IF OBJECT_ID('dbo.Posts') IS NULL
+CREATE TABLE dbo.Posts(
+  Id BIGINT IDENTITY PRIMARY KEY,
+  Title NVARCHAR(300) NOT NULL,
+  Slug NVARCHAR(160) UNIQUE NOT NULL,
+  Summary NVARCHAR(MAX) NULL,
+  Content NVARCHAR(MAX) NOT NULL,
+  PublishedAt DATETIME NULL,
+  UpdatedAt DATETIME NULL,
+  IsPublished BIT NOT NULL DEFAULT(0),
+  CategoryId INT NULL REFERENCES dbo.Categories(Id)
+);
+
+IF OBJECT_ID('dbo.Persons') IS NULL
+CREATE TABLE dbo.Persons(
+  Id BIGINT IDENTITY PRIMARY KEY,
+  DisplayName NVARCHAR(200) NOT NULL,
+  Alias NVARCHAR(200) NULL,
+  BirthDate DATE NULL,
+  DeathDate DATE NULL,
+  [Generation] INT NULL,
+  [Branch] NVARCHAR(50) NULL,
+  LegacyId INT NULL
+);
+
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name='CK_Person_Dates')
+ALTER TABLE dbo.Persons WITH CHECK
+ADD CONSTRAINT CK_Person_Dates CHECK (BirthDate IS NULL OR DeathDate IS NULL OR BirthDate<=DeathDate);
+
+IF OBJECT_ID('dbo.PersonRelations') IS NULL
+CREATE TABLE dbo.PersonRelations(
+  ParentId BIGINT NOT NULL REFERENCES dbo.Persons(Id),
+  ChildId  BIGINT NOT NULL REFERENCES dbo.Persons(Id),
+  RelationType TINYINT NOT NULL DEFAULT(1),
+  CONSTRAINT PK_PersonRelations PRIMARY KEY(ParentId, ChildId)
+);
+
+IF OBJECT_ID('dbo.Albums') IS NULL
+CREATE TABLE dbo.Albums(
+  Id BIGINT IDENTITY PRIMARY KEY,
+  Title NVARCHAR(300) NOT NULL,
+  Slug  NVARCHAR(160) UNIQUE NOT NULL,
+  Description NVARCHAR(1000) NULL,
+  CreatedAt DATETIME NULL
+);
+
+IF OBJECT_ID('dbo.Photos') IS NULL
+CREATE TABLE dbo.Photos(
+  Id BIGINT IDENTITY PRIMARY KEY,
+  AlbumId BIGINT NOT NULL REFERENCES dbo.Albums(Id),
+  Url NVARCHAR(500) NOT NULL,
+  Caption NVARCHAR(500) NULL,
+  TakenAt DATETIME NULL
+);
