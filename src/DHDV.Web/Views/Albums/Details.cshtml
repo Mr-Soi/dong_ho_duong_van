@@ -1,0 +1,19 @@
+@model object
+@{
+    var t = Model.GetType();
+    var name  = Convert.ToString(t.GetProperty("Name")?.GetValue(Model) ?? "Album");
+    var cover = Convert.ToString(t.GetProperty("CoverImage")?.GetValue(Model)
+              ?? t.GetProperty("CoverUrl")?.GetValue(Model)
+              ?? Url.Content("~/img/cover.png"));
+    var desc  = Convert.ToString(t.GetProperty("Description")?.GetValue(Model) ?? "");
+    ViewData["Title"] = name;
+}
+<section class="mx-auto" style="max-width:980px">
+  <h1 class="mb-2">@name</h1>
+  <img src="@cover" onerror="this.src='@Url.Content("~/img/cover.png")';"
+       class="w-100 mb-3" style="aspect-ratio:4/2;object-fit:cover;border-radius:.5rem;">
+  @if (!string.IsNullOrWhiteSpace(desc)) { <p class="text-muted">@desc</p> }
+  <a asp-action="Index" class="btn btn-outline-secondary mt-3">← Quay lại Albums</a>
+
+
+</section>

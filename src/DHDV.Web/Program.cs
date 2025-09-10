@@ -53,19 +53,34 @@ app.MapGet("/ready", async () => {
 });
 
 // sitemap.xml
-app.MapGet("/sitemap.xml", async (AppDbContext db, HttpContext ctx) =>
+app.MapGet("/sitemap.xml", async (DHDV.Web.Data.AppDbContext db, HttpContext ctx) =>
 {
     ctx.Response.ContentType = "application/xml; charset=utf-8";
     var host = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
-    var urls = new List<string> { $"{host}/", $"{host}/People", $"{host}/Posts" };
+    var urls = new List<string> { $"{host}/", $"{host}/People", $"{host}/Posts", $"{host}/Albums" };
+
     var posts = await db.Posts.OrderByDescending(x => x.PublishedAt)
-                              .Take(200).Select(x => x.Id).ToListAsync();
+                              .Select(x => x.Id).Take(200).ToListAsync();
     urls.AddRange(posts.Select(id => $"{host}/Posts/Details/{id}"));
-    var sb = new StringBuilder();
+
+    var people = await db.Persons.Where(p=>!p.IsDeleted)
+                                 .OrderByDescending(p=>p.Id)
+                                 .Select(p=>p.Id).Take(200).ToListAsync();
+    urls.AddRange(people.Select(id => $"{host}/People/Details/{id}"));
+
+    // nếu có bảng Albums
+    try {
+        var albumIds = await db.Albums.OrderByDescending(a => EF.Property<int>(a,"Id"))
+                                      .Select(a => EF.Property<int>(a,"Id")).Take(100).ToListAsync();
+        urls.AddRange(albumIds.Select(id => $"{host}/Albums/Details/{id}"));
+    } catch { /* bảng chưa có: bỏ qua */ }
+
+    var sb = new System.Text.StringBuilder();
     sb.AppendLine(@"<?xml version=""1.0"" encoding=""UTF-8""?><urlset xmlns=""http://www.sitemaps.org/schemas/sitemap/0.9"">");
-    foreach (var u in urls) sb.AppendLine($"<url><loc>{SecurityElement.Escape(u)}</loc></url>");
+    foreach (var u in urls) sb.AppendLine($"<url><loc>{System.Security.SecurityElement.Escape(u)}</loc></url>");
     sb.AppendLine("</urlset>");
     await ctx.Response.WriteAsync(sb.ToString());
 });
+
 
 app.Run();

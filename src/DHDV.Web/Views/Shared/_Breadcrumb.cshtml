@@ -1,0 +1,10 @@
+@model (string Title, string Url)?
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+    @if (Model?.Url != null) {
+      <li class="breadcrumb-item"><a href="@Model.Value.Url">@Model.Value.Title</a></li>
+    }
+    <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+  </ol>
+</nav>

@@ -1,3 +1,4 @@
+@await Html.PartialAsync("_Breadcrumb", (("Gia phả","/People")))
 @model DHDV.Web.ViewModels.PersonDetails
 @{ ViewData["Title"]=Model?.Name??"Thành viên"; var avatar=Url.Content("~/img/avatar.png"); }
 <section class="mx-auto" style="max-width:900px">

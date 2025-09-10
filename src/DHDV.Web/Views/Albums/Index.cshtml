@@ -1,38 +1,40 @@
-﻿@model IEnumerable<DHDV.Web.Models.Album>
-@{
-    ViewData["Title"] = "ThÆ° viá»‡n áº£nh";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+﻿@model System.Collections.IEnumerable
+@{ ViewData["Title"]="Albums"; string fallback = Url.Content("~/img/cover.png"); var q = (string?)ViewData["q"] ?? ""; }
+
+<h2 class="mb-3">Albums</h2>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-sm-6 col-md-4">
+    <input name="q" value="@q" class="form-control" placeholder="Tìm tên / mô tả album">
+  </div>
+  <div class="col-auto"><button class="btn btn-primary" type="submit">Lọc</button></div>
+</form>
+
+@if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err)) {
+  <div class="alert alert-warning">Tạm thời không tải được dữ liệu album.</div>
 }
-<h3 class="mb-3">ThÆ° viá»‡n áº£nh</h3>
+
 <div class="row g-3">
 @foreach (var a in Model)
 {
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="card-title">@a.Name</h5>
-        @if (!string.IsNullOrWhiteSpace(a.Description))
-        {
-            <p class="card-text">@a.Description</p>
-        }
-        <div class="d-flex flex-wrap gap-2">
-        @if (a.Photos != null)
-        {
-            foreach (var ph in a.Photos)
-            {
-                <a href="@ph.Path" target="_blank" rel="noopener">
-                  <img src="@ph.Path"
-                       class="rounded"
-                       style="width:100px;height:100px;object-fit:cover"
-                       alt="@ph.Caption" />
-                </a>
-            }
-        }
+  var t     = a.GetType();
+  var id    = t.GetProperty("Id")?.GetValue(a);
+  var name  = Convert.ToString(t.GetProperty("Name")?.GetValue(a) ?? $"Album #{id}");
+  var cover = Convert.ToString(
+                t.GetProperty("CoverImage")?.GetValue(a) ??
+                t.GetProperty("CoverUrl")?.GetValue(a) ??
+                fallback
+              );
+  <div class="col-6 col-md-4 col-lg-3">
+    <a asp-action="Details" asp-route-id="@id" class="text-decoration-none text-dark">
+      <div class="card shadow-sm">
+        <img src="@cover" onerror="this.src='@fallback';"
+             class="w-100" style="aspect-ratio:4/3;object-fit:cover;border-top-left-radius:.25rem;border-top-right-radius:.25rem;">
+        <div class="card-body p-2">
+          <div class="fw-semibold text-truncate" title="@name">@name</div>
         </div>
       </div>
-    </div>
+    </a>
   </div>
 }
 </div>
-
-
