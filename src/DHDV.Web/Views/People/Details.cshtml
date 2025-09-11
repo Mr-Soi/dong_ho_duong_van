@@ -1,6 +1,10 @@
-@await Html.PartialAsync("_Breadcrumb", (("Gia phả","/People")))
 @model DHDV.Web.ViewModels.PersonDetails
-@{ ViewData["Title"]=Model?.Name??"Thành viên"; var avatar=Url.Content("~/img/avatar.png"); }
+@{
+    ViewData["Title"]=Model?.Name??"Thành viên";
+    var avatar=Url.Content("~/img/avatar.png");
+}
+@if (Model == null){ <div class="alert alert-warning">Không tìm thấy dữ liệu.</div> }
+else {
 <section class="mx-auto" style="max-width:900px">
   <div class="d-flex align-items-center gap-3 mb-4">
     <img src="@avatar" alt="@Model.Name" class="person-avatar" />
@@ -30,3 +34,4 @@
     </div>
   </div>
 </section>
+}

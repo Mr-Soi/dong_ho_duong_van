@@ -1,29 +1,61 @@
-@model IEnumerable<DHDV.Web.Models.Post>
+﻿@model IEnumerable<DHDV.Web.Models.Post>
 @{
     ViewData["Title"] = "Bản tin";
     string Fallback = Url.Content("~/img/cover.png");
+}
+@functions{
+    string SanitizeImagePath(string? s){
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        var p = s.Replace("\\","/").Trim();
+        foreach (var ext in new[]{".jpeg",".jpg",".png",".webp",".svg"}){
+            var i = p.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
+            if (i >= 0){ p = p.Substring(0, i+ext.Length); break; }
+        } return p;
+    }
+    string FixPath(string? s, string fallback){
+        var p = SanitizeImagePath(s);
+        if (string.IsNullOrWhiteSpace(p)) return fallback;
+        if (p.StartsWith("~/")) p = p.Substring(1);
+        if (!p.StartsWith("/")) p = "/" + p;
+        return p;
+    }
 }
 <h2 class="mb-3">Bản tin</h2>
 
 <div class="row g-3">
 @foreach (var p in Model)
 {
-    var img = string.IsNullOrWhiteSpace(p?.CoverImage) ? Fallback : p.CoverImage;
+    var title = p?.Title ?? "Bài viết";
+    var url   = $"/Posts/Details/{p?.Id}";
+    var cover = FixPath(p?.CoverImage, Fallback);
+    var ext   = System.IO.Path.GetExtension(cover);
+    var webp  = string.IsNullOrWhiteSpace(ext) ? "" : cover[..^ext.Length] + ".webp";
+    var cat   = p?.Category?.Name ?? "Bản tin";
+    var date  = (p?.PublishedAt is DateTime dt) ? dt.ToString("dd/MM/yyyy") : "";
+    var sum   = p?.Summary ?? "";
+
     <div class="col-12">
-        <div class="card shadow-sm">
+        <article class="card shadow-sm">
             <div class="row g-0 align-items-center">
                 <div class="col-12 col-md-3 p-2">
-                    <img src="@img" alt="cover" loading="lazy" class="post-cover" />
+                    <picture>
+                      <source srcset="@webp" type="image/webp">
+                      <img class="img-fluid rounded w-100 h-100 object-fit-cover"
+                           src="@cover" loading="lazy" decoding="async"
+                           onerror="this.src='@Fallback'" alt="cover">
+                    </picture>
                 </div>
                 <div class="col-12 col-md-9 p-3">
-                    <a asp-controller="Posts" asp-action="Details" asp-route-id="@p?.Id" class="fw-semibold h6 d-block">@p?.Title</a>
-                    <div class="text-muted small">
-                        @(p?.PublishedAt is DateTime dt ? dt.ToString("dd/MM/yyyy") : "")
+                    <h5 class="mb-2">
+                        <a class="stretched-link text-decoration-none" href="@url">@title</a>
+                    </h5>
+                    <div class="text-muted small mb-2">
+                        <span class="badge bg-warning-subtle text-dark border me-2">@cat</span>@date
                     </div>
-                    <p class="mb-0">@p?.Summary</p>
+                    <p class="mb-0">@sum</p>
                 </div>
             </div>
-        </div>
+        </article>
     </div>
 }
 </div>

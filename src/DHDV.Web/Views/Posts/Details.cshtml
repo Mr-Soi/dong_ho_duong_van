@@ -1,22 +1,46 @@
-@model DHDV.Web.Models.Post
+﻿@model DHDV.Web.Models.Post
 @{
     ViewData["Title"] = Model?.Title ?? "Bài viết";
-    string cover = string.IsNullOrWhiteSpace(Model?.CoverImage) ? Url.Content("~/img/cover.png") : Model!.CoverImage;
-
-    var m = (object)Model;
+    string Fallback = Url.Content("~/img/cover.png");
+}
+@functions{
+    string SanitizeImagePath(string? s){
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        var p = s.Replace("\\","/").Trim();
+        foreach (var ext in new[]{".jpeg",".jpg",".png",".webp",".svg"}){
+            var i = p.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
+            if (i >= 0){ p = p.Substring(0, i+ext.Length); break; }
+        } return p;
+    }
+    string FixPath(string? s, string fallback){
+        var p = SanitizeImagePath(s);
+        if (string.IsNullOrWhiteSpace(p)) return fallback;
+        if (p.StartsWith("~/")) p = p.Substring(1);
+        if (!p.StartsWith("/")) p = "/" + p;
+        return p;
+    }
+}
+@{
+    var cover = FixPath(Model?.CoverImage, Fallback);
+    var ext   = System.IO.Path.GetExtension(cover);
+    var webp  = string.IsNullOrWhiteSpace(ext) ? "" : cover[..^ext.Length] + ".webp";
+    var date  = (Model?.PublishedAt is DateTime dt) ? dt.ToString("dd/MM/yyyy") : "";
+    var m = (object)Model!;
     var t = m.GetType();
     string content =
-        Convert.ToString(t.GetProperty("ContentHtml")?.GetValue(m))
-        ?? Convert.ToString(t.GetProperty("Content")?.GetValue(m))
-        ?? Convert.ToString(t.GetProperty("Body")?.GetValue(m))
-        ?? Convert.ToString(t.GetProperty("Description")?.GetValue(m))
-        ?? "";
+        Convert.ToString(t.GetProperty("ContentHtml")?.GetValue(m)) ??
+        Convert.ToString(t.GetProperty("Content")?.GetValue(m)) ??
+        Convert.ToString(t.GetProperty("Body")?.GetValue(m)) ??
+        Convert.ToString(t.GetProperty("Description")?.GetValue(m)) ?? "";
 }
 <article class="mx-auto" style="max-width:900px">
     <h1 class="mb-3">@Model?.Title</h1>
-    <div class="text-muted mb-3">
-        @(Model?.PublishedAt is DateTime dt ? dt.ToString("dd/MM/yyyy") : "")
-    </div>
-    <img src="@cover" alt="cover" class="post-cover mb-4" />
+    <div class="text-muted mb-3">@date</div>
+    <picture>
+      <source srcset="@webp" type="image/webp">
+      <img src="@cover" class="img-fluid rounded mb-4"
+           loading="lazy" decoding="async"
+           onerror="this.src='@Fallback'" alt="cover">
+    </picture>
     <div class="content">@Html.Raw(content)</div>
 </article>

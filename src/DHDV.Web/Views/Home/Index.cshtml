@@ -1,16 +1,38 @@
-@model DHDV.Web.Models.HomeIndexVM
-@using System.Linq
-@using System.Text.RegularExpressions
+﻿@model DHDV.Web.Models.HomeIndexVM
 @{
-    var posts  = Model?.Posts  ?? new System.Collections.Generic.List<DHDV.Web.Models.Post>();
-    var people = Model?.People ?? new System.Collections.Generic.List<DHDV.Web.Models.Person>();
-    string Strip(string? s)=>Regex.Replace(System.Net.WebUtility.HtmlDecode(s??""), "<.*?>", "");
-    string H(System.DateTime? d)=> d.HasValue && d.Value>=new System.DateTime(1950,1,1)? d.Value.ToString("dd/MM/yyyy") : "—";
-    string Excerpt(string? sum,string? content,int len=200){ var raw=string.IsNullOrWhiteSpace(sum)?(content??""):sum!; var t=Strip(raw); return t.Length>len?t.Substring(0,len)+"…":t; }
-    var first = posts.FirstOrDefault();
+    ViewData["Title"] = "Trang chủ";
+    string Fallback = Url.Content("~/img/cover.png");
+    string AvatarFallback = Url.Content("~/img/avatar.png");
 }
-@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
-
+@functions{
+    string SanitizeImagePath(string? s){
+        if (string.IsNullOrWhiteSpace(s)) return "";
+        var p = s.Replace("\\","/").Trim();
+        foreach (var ext in new[]{".jpeg",".jpg",".png",".webp",".svg"}){
+            var i = p.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
+            if (i >= 0){ p = p.Substring(0, i+ext.Length); break; }
+        } return p;
+    }
+    string FixPath(string? s, string fallback){
+        var p = SanitizeImagePath(s);
+        if (string.IsNullOrWhiteSpace(p)) return fallback;
+        if (p.StartsWith("~/")) p = p.Substring(1);
+        if (!p.StartsWith("/")) p = "/" + p;
+        return p;
+    }
+    string NameFallback(object o){
+        var t=o.GetType();
+        string? get(string n)=> t.GetProperty(n)?.GetValue(o)?.ToString();
+        var id   = get("Id");
+        var name = get("FullName") ?? get("DisplayName") ?? get("Alias")
+                ?? get("Name") ?? get("FullNameNorm") ?? get("DisplayNameNorm") ?? get("AliasNorm");
+        return string.IsNullOrWhiteSpace(name) ? $"Thành viên #{id}" : name!;
+    }
+    string GenFallback(object o){
+        var t=o.GetType(); var v=t.GetProperty("Generation")?.GetValue(o);
+        return v?.ToString() ?? "";
+    }
+}
 <section class="hero rounded-4 mb-4 p-5 text-white" style="background:linear-gradient(135deg,#0d6efd,#6610f2)">
   <div class="container px-0">
     <h1 class="display-6 fw-bold mb-2">Cổng thông tin Dòng họ Dương Văn</h1>
@@ -25,89 +47,62 @@
 <div class="row g-4">
   <div class="col-lg-8">
     <h5 class="mb-3">Bản tin mới</h5>
-    @if (first is null)
-    { <div class="alert alert-info">Chưa có bài viết.</div> }
-    else
+    @foreach (var p in (Model?.Posts ?? Enumerable.Empty<DHDV.Web.Models.Post>()))
     {
-      <article class="card shadow-sm mb-3">
-        <div class="row g-0">
-          <div class="col-md-4">
-            <img class="img-fluid rounded-start w-100 h-100 object-fit-cover"
-                 src="@(string.IsNullOrWhiteSpace(first.CoverImage) ? "/img/uploads/logo_www.png" : first.CoverImage)"
-                 alt="cover">
-          </div>
-          <div class="col-md-8">
-            <div class="card-body">
-              <h5 class="card-title mb-2">
-                <a class="stretched-link text-decoration-none" href="/Posts/Details/@first.Id">@Strip(first.Title)</a>
-              </h5>
-              <div class="text-muted small mb-2">
-                @if (!string.IsNullOrWhiteSpace(first.Category?.Name)) { <span class="badge bg-warning-subtle text-dark border me-2">@first.Category!.Name</span> }
-                @H(first.PublishedAt)
-              </div>
-              <p class="card-text mb-0">@Excerpt(first.Summary, first.Content, 200)</p>
-            </div>
-          </div>
-        </div>
-      </article>
+        var title = p?.Title ?? "Bài viết";
+        var url   = $"/Posts/Details/{p?.Id}";
+        var cover = FixPath(p?.CoverImage, Fallback);
+        var ext   = System.IO.Path.GetExtension(cover);
+        var webp  = string.IsNullOrWhiteSpace(ext) ? "" : cover[..^ext.Length] + ".webp";
+        var cat   = p?.Category?.Name ?? "Bản tin";
+        var date  = (p?.PublishedAt is DateTime dt) ? dt.ToString("dd/MM/yyyy") : "";
+        var sum   = p?.Summary ?? "";
 
-      <div class="row g-3">
-        @foreach (var p in posts.Skip(1))
-        {
-          <div class="col-md-6">
-            <article class="card h-100 shadow-sm">
-              <div class="row g-0">
-                <div class="col-4">
-                  <img class="img-fluid rounded-start w-100 h-100 object-fit-cover"
-                       src="@(string.IsNullOrWhiteSpace(p?.CoverImage) ? "/img/uploads/logo_www.png" : p!.CoverImage)"
-                       alt="cover">
+        <article class="card shadow-sm mb-3">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <picture>
+                      <source srcset="@webp" type="image/webp">
+                      <img class="img-fluid rounded-start w-100 h-100 object-fit-cover"
+                           src="@cover" loading="lazy" decoding="async"
+                           onerror="this.src='@Fallback'" alt="cover">
+                    </picture>
                 </div>
-                <div class="col-8">
-                  <div class="card-body py-2">
-                    <h6 class="card-title mb-1">
-                      <a class="stretched-link text-decoration-none" href="/Posts/Details/@p!.Id">@Strip(p!.Title)</a>
-                    </h6>
-                    <div class="text-muted small mb-1">
-                      @if (!string.IsNullOrWhiteSpace(p!.Category?.Name)) { <span class="badge bg-warning-subtle text-dark border me-2">@p.Category!.Name</span> }
-                      @H(p!.PublishedAt)
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">
+                            <a class="stretched-link text-decoration-none" href="@url">@title</a>
+                        </h5>
+                        <div class="text-muted small mb-2">
+                            <span class="badge bg-warning-subtle text-dark border me-2">@cat</span>@date
+                        </div>
+                        <p class="card-text mb-0">@sum</p>
                     </div>
-                    <p class="card-text small mb-0">@Excerpt(p!.Summary, p!.Content, 120)</p>
-                  </div>
                 </div>
-              </div>
-            </article>
-          </div>
-        }
-      </div>
+            </div>
+        </article>
     }
   </div>
 
   <div class="col-lg-4">
     <h5 class="mb-3">Một số thành viên</h5>
-    @{
-        var safePeople = people?.Where(x => x is not null).ToList() ?? new System.Collections.Generic.List<DHDV.Web.Models.Person>();
-    }
-    @if (!safePeople.Any()) { <div class="text-muted">Chưa có dữ liệu.</div> }
-    else
+    <ul class="list-group list-group-flush shadow-sm rounded-3">
+    @foreach (var obj in (Model?.People ?? Enumerable.Empty<object>()))
     {
-      <ul class="list-group list-group-flush shadow-sm rounded-3">
-        @foreach (var m in safePeople)
-        {
-          var full = m!.FullName ?? string.Empty;
-          var initial = string.IsNullOrWhiteSpace(full) ? "?" : full.Trim().Substring(0,1);
-          <li class="list-group-item d-flex align-items-center gap-2">
+        var t   = obj.GetType();
+        var id  = t.GetProperty("Id")?.GetValue(obj);
+        var name= NameFallback(obj);
+        var gen = GenFallback(obj);
+
+        <li class="list-group-item d-flex align-items-center gap-2">
             <div class="avatar bg-primary-subtle text-primary fw-bold rounded-circle d-inline-flex justify-content-center align-items-center"
-                 style="width:36px;height:36px">@initial</div>
+                 style="width:36px;height:36px">?</div>
             <div class="flex-fill">
-              <a href="/People/Details/@m.Id" class="text-decoration-none">@full</a>
-              @{
-                  var genTxt = m.Generation?.ToString();
-                  if (!string.IsNullOrEmpty(genTxt)) { <div class="small text-muted">Đời @genTxt</div> }
-              }
+                <a href="/People/Details/@id" class="text-decoration-none">@name</a>
+                @if(!string.IsNullOrWhiteSpace(gen)){ <div class="small text-muted">Đời @gen</div> }
             </div>
-          </li>
-        }
-      </ul>
+        </li>
     }
+    </ul>
   </div>
 </div>

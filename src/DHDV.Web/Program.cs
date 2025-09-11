@@ -14,7 +14,31 @@ var cs = builder.Configuration.GetConnectionString("DefaultConnection")
 builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(cs));
 
 var app = builder.Build();
-app.UseStaticFiles();
+// security headers (edge-safe)
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.OnStarting(() =>
+    {
+        var h = ctx.Response.Headers;
+        h["X-Content-Type-Options"] = "nosniff";
+        h["X-Frame-Options"] = "SAMEORIGIN";
+        h["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        h["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var p = ctx.Context.Request.Path.Value ?? "";
+        if (p.StartsWith("/css") || p.StartsWith("/js") || p.StartsWith("/img") || p.StartsWith("/assets"))
+            ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+    }
+});
+
 app.UseRouting();
 
 // no-store cho HTML (đặt header trước khi gửi body)
