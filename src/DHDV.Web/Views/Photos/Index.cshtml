@@ -1,0 +1,63 @@
+﻿@model IEnumerable<DHDV.Web.Controllers.PhotoItem>
+@{
+    var albumId  = (int)ViewData["AlbumId"];
+    var albumTitle = (string)ViewData["AlbumTitle"];
+    var q       = (string?)ViewData["q"] ?? "";
+    var total   = (int)(ViewData["Total"] ?? 0);
+    var page    = (int)(ViewData["Page"] ?? 1);
+    var pageSize= (int)(ViewData["PageSize"] ?? 24);
+    var pages   = total>0 ? (int)Math.Ceiling((double)total/pageSize) : 1;
+    ViewData["Title"] = albumTitle;
+}
+<nav class="breadcrumb mb-2">
+  <a href="/">Home</a> / <a href="/Albums">Albums</a> / <span>@albumTitle</span>
+</nav>
+
+<h1 class="mb-3">@albumTitle</h1>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+  <input type="hidden" name="albumId" value="@albumId" />
+  <div class="col-sm-5">
+    <label class="form-label">Tìm ảnh</label>
+    <input class="form-control" name="q" value="@q" placeholder="Chú thích / URL" />
+  </div>
+  <div class="col-sm-2">
+    <label class="form-label">Kích thước trang</label>
+    <select class="form-select" name="pageSize">
+      @foreach (var s in new[]{24,48,96}) { <option value="@s" selected="@(s==pageSize)">@s</option> }
+    </select>
+  </div>
+  <div class="col-sm-2 d-grid"><button class="btn btn-primary">Lọc</button></div>
+  @if (!string.IsNullOrWhiteSpace(q) || pageSize!=24) {
+    <div class="col-auto"><a class="btn btn-outline-secondary" href="/Photos?albumId=@albumId">Clear</a></div>
+  }
+</form>
+
+@if (!Model.Any()) {
+  <div class="alert alert-warning">Không có ảnh.</div>
+} else {
+  <div class="photo-grid js-lightbox">
+    @foreach (var p in Model) {
+      <figure class="photo">
+        <img src="@p.ThumbUrl" data-full="@p.Url" alt="@p.Caption"
+             width="600" height="600" loading="lazy" decoding="async"
+             style="aspect-ratio:1/1;object-fit:cover" />
+        @if (!string.IsNullOrWhiteSpace(p.Caption)) { <figcaption>@p.Caption</figcaption> }
+      </figure>
+    }
+  </div>
+
+  @if (pages>1){
+    <nav class="mt-3" aria-label="Photo pages">
+      <ul class="pagination">
+        <li class="page-item @(page<=1?"disabled":"")"><a class="page-link" href="?albumId=@albumId&q=@q&page=@(page-1)&pageSize=@pageSize"></a></li>
+        @for (var i=1;i<=pages;i++){
+          <li class="page-item @(i==page?"active":"")"><a class="page-link" href="?albumId=@albumId&q=@q&page=@i&pageSize=@pageSize">@i</a></li>
+        }
+        <li class="page-item @(page>=pages?"disabled":"")"><a class="page-link" href="?albumId=@albumId&q=@q&page=@(page+1)&pageSize=@pageSize"></a></li>
+      </ul>
+    </nav>
+  }
+
+  @await Html.PartialAsync("_Lightbox")
+}
