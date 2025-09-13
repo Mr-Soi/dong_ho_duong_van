@@ -1,4 +1,4 @@
-User-agent: *
+﻿User-agent: *
 Disallow: /__db
 Disallow: /_routes
 Disallow: /health

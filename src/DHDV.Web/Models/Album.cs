@@ -1,23 +1,21 @@
-using System.ComponentModel.DataAnnotations;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DHDV.Web.Models
 {
+    [Table("Albums")]
     public class Album
     {
         public int Id { get; set; }
-        [Required, MaxLength(150)]
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public List<Photo> Photos { get; set; } = new();
-    }
 
-    public class Photo
-    {
-        public int Id { get; set; }
-        [Required]
-        public string Path { get; set; } = string.Empty;
-        public string? Caption { get; set; }
-        public int AlbumId { get; set; }
-        public Album? Album { get; set; }
+        // nếu DB dùng "Title" và "Description" giữ nguyên;
+        // nếu DB dùng tên khác, đổi bằng [Column("TenCotThucTe")]
+        public string Title { get; set; } = "";
+        public string? Description { get; set; }
+
+        // hay gặp lệch tên CoverUrl vs CoverImage → map an toàn:
+        [Column("CoverImage")] public string? CoverUrl { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

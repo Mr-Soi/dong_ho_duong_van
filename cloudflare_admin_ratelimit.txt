@@ -1,0 +1,11 @@
+Cloudflare WAF/Ratelimit for /admin
+
+Expression:
+  (http.request.uri.path starts_with "/admin")
+
+Action:
+  Rate Limit → 10 requests per 60 seconds per IP → Block for 60 seconds
+
+Notes:
+  - Enable "Respect X-Forwarded-For"
+  - Scope: Zone → donghoduongvan.com

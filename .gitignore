@@ -24,3 +24,12 @@ handoff/*.tar
 /backup/*.bak
 /db/*.zip
 logs/*.log
+logs/*.log
+
+web.env
+cloudflared/config.yml
+src/DHDV.Web/DHDV.Web.zip
+*.diff
+site.css
+dhdv.ui.css
+site.ui-upgrade.css

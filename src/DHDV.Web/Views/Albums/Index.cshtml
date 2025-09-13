@@ -7,6 +7,9 @@
     var pageSize = (int)(ViewData["PageSize"] ?? 24);
     var pages = total > 0 ? (int)Math.Ceiling((double)total / pageSize) : 1;
 }
+<nav class="breadcrumb mb-2">
+  <a href="/">Home</a> / <span>Albums</span>
+</nav>
 
 <h1 class="mb-3">Albums</h1>
 

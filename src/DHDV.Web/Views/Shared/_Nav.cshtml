@@ -1,0 +1,8 @@
+@{
+  string here(string p) => Context.Request.Path.StartsWithSegments(p) ? "active" : "";
+}
+<nav class="navbar">
+  <a class="@here("/People")" href="/People">People</a>
+  <a class="@here("/Albums")" href="/Albums">Albums</a>
+  <a class="@here("/Posts")"  href="/Posts">Posts</a>
+</nav>

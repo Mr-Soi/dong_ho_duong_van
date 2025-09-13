@@ -1,52 +1,50 @@
-﻿<!DOCTYPE html>
+﻿@{
+    Layout = null;
+    var title = ViewData["Title"] as string ?? "Dòng họ Dương Văn";
+}
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <title>@(ViewData["Title"] ?? "Dòng họ Dương Văn")</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous">
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/dhdv.ui.css" />
 
-  <link rel="icon" type="image/svg+xml" href="~/assets/logo/favicon.svg" asp-append-version="true" />
-  <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Step 6: Preload logo/cover để tối ưu -->
+    <link rel="preload" as="image" href="/assets/logo/duongvan_logo_horizontal.svg" type="image/svg+xml" />
+    <link rel="preload" as="image" href="/img/cover.webp" />
 
-  @await Html.PartialAsync("_SeoMeta")
+    <!-- Step 6: Google Search Console verify (điền mã thật) -->
+    <meta name="google-site-verification" content="__PUT_VERIFICATION_CODE__" />
+
+    @RenderSection("Styles", required: false)
 </head>
+@await Html.PartialAsync("_Nav")
+
 <body>
-  <header class="navbar navbar-expand-lg bg-white border-bottom">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
-        <img src="~/assets/logo/duongvan_logo_horizontal.svg" class="logo me-2"
-            loading="lazy" decoding="async" asp-append-version="true" alt="Dương Văn" />
-        <span class="fw-semibold d-none d-sm-inline">Dòng họ Dương Văn</span>
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <nav id="mainNav" class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" asp-controller="People"  asp-action="Index">Gia phả</a></li>
-          <li class="nav-item"><a class="nav-link" asp-controller="Posts"   asp-action="Index">Bản tin</a></li>
-          <li class="nav-item"><a class="nav-link" asp-controller="Albums"  asp-action="Index">Hình ảnh</a></li>
-          <li class="nav-item"><a class="nav-link" asp-controller="Home"    asp-action="Intro">Giới thiệu</a></li>
-          <li class="nav-item"><a class="nav-link" asp-controller="Home"    asp-action="Charter">Tộc ước</a></li>
-          <li class="nav-item"><a class="nav-link" asp-controller="Home"    asp-action="Contact">Liên hệ</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
+    <header class="container py-3">
+        <a href="/" class="d-flex align-items-center gap-2 text-decoration-none">
+            <img src="/assets/logo/duongvan_logo_horizontal.svg" alt="Dương Văn" height="40" />
+            <strong>Dòng họ Dương Văn</strong>
+        </a>
+        <nav class="mt-2">
+            <a href="/People">People</a> ·
+            <a href="/Albums">Albums</a> ·
+            <a href="/Posts">Posts</a>
+        </nav>
+    </header>
 
-  <main class="container my-4">
-    @RenderBody()
-  </main>
+    <main class="container mb-5">
+        @RenderBody()
+    </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-          crossorigin="anonymous"></script>
-  @RenderSection("Scripts", required: false)
+    <footer class="container border-top py-3 text-muted">
+        © @DateTime.Now.Year Dòng họ Dương Văn
+    </footer>
+
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

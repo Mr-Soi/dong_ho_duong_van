@@ -36,13 +36,17 @@ namespace DHDV.Web.Controllers
                 .OrderByDescending(a => a.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(a => new AlbumListItem
-                {
-                    Id = a.Id,
-                    Title = a.Title ?? ("Album #" + a.Id),
-                    Description = a.Description,
-                    CoverUrl = a.CoverImageUrl // nếu model khác tên, đổi tại đây
+                .Select(a => new AlbumListItem{
+                    Id=a.Id,
+                    Title=a.Title ?? ("Album #"+a.Id),
+                    Description=a.Description,
+                    CoverUrl=_db.Photos.Where(p=>p.AlbumId==a.Id)
+                                    .OrderBy(p=>p.Id)
+                                    .Select(p=>p.ThumbUrl ?? p.Url)
+                                    .FirstOrDefault()
                 })
+
+
                 .ToListAsync();
 
             ViewData["q"] = q;

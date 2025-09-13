@@ -1,18 +1,11 @@
-@model PaginationVM
-@if (Model.TotalPages > 1){
-<nav class="pager" aria-label="Phân trang">
-  <ul class="pagination">
-    <li class="page-item @(Model.HasPrev ? "" : "disabled")">
-      <a class="page-link" href="@Url.Action("Index", new { page = Model.Page - 1 })">‹</a>
-    </li>
-    @for (var i = 1; i <= Model.TotalPages && i <= 10; i++){
-      <li class="page-item @(i == Model.Page ? "active" : null)">
-        <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
-      </li>
-    }
-    <li class="page-item @(Model.HasNext ? "" : "disabled")">
-      <a class="page-link" href="@Url.Action("Index", new { page = Model.Page + 1 })">›</a>
-    </li>
-  </ul>
-</nav>
+@model DHDV.Web.Models.PaginationVM
+@{
+    if (Model is null || Model.TotalPages <= 1) { return; }
+    var prev = Model.HasPrev ? (Model.Page - 1) : 1;
+    var next = Model.HasNext ? (Model.Page + 1) : Model.TotalPages;
 }
+<nav class="loadmore-wrap" aria-label="Pagination">
+  <a class="pt-sort" asp-route-page="@prev" aria-disabled="@(!Model.HasPrev)">← Trước</a>
+  <span class="muted" style="padding:0 .75rem">@Model.Page / @Model.TotalPages</span>
+  <a class="pt-sort" asp-route-page="@next" aria-disabled="@(!Model.HasNext)">Sau →</a>
+</nav>
