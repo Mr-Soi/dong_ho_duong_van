@@ -1,5 +1,3 @@
-User-agent: *
-Disallow: /__db
-Disallow: /_routes
-Disallow: /health
+﻿User-agent: *
+Disallow: /admin
 Sitemap: https://donghoduongvan.com/sitemap.xml
