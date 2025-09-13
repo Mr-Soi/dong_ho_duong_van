@@ -1,50 +1,68 @@
-services:
+﻿services:
   sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: dhdv_sql
+    restart: unless-stopped
+    ports:
+      - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
-      - TZ=Asia/Bangkok
-    ports: ["1433:1433"]
+      - MSSQL_PID=Developer
+      - SA_PASSWORD=${SA_PASSWORD}
     volumes:
-      - mssql_data:/var/opt/mssql
-      - ./backup:/var/opt/mssql/backup
-    networks: [appnet]
-    restart: unless-stopped
+      - mssql-data:/var/opt/mssql
+    networks:
+      - appnet
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: dhdv_stack_v_29-web:latest
     container_name: dhdv_web
-    environment:
-      ASPNETCORE_URLS: "http://+:8080"
-      ASPNETCORE_ENVIRONMENT: "Production"
-      ConnectionStrings__DefaultConnection: "Server=dhdv_sql,1433;Database=dhdv;User ID=sa;Password=${SA_PASSWORD};Encrypt=True;TrustServerCertificate=True"
-      TZ: "Asia/Bangkok"
-    ports: ["8080:8080"]
-    volumes:
-      - ./keys:/root/.aspnet/DataProtection-Keys
+    restart: unless-stopped
     depends_on: [sql]
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS:-http://0.0.0.0:8080}
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+    networks:
+      appnet:
+        aliases: [web]
     healthcheck:
-      test: ["CMD","curl","-fsS","http://localhost:8080/ready"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/ping"]
       interval: 30s
       timeout: 5s
       retries: 3
-    networks: [appnet]
-    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
 
   cf:
     image: cloudflare/cloudflared:latest
     container_name: dhdv_cf
-    command: ["tunnel","--no-autoupdate","run","--token","${TUNNEL_TOKEN}"]
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-      - TZ=Asia/Bangkok
-    depends_on: [web]
-    networks: [appnet]
     restart: unless-stopped
+    depends_on: [web]
+    command: ["tunnel","run","--token","${CF_TUNNEL_TOKEN}"]
+    networks: [appnet]
 
-networks: { appnet: {} }
-volumes:   { mssql_data: {} }
+  smoker:
+    image: curlimages/curl:8.10.1
+    container_name: dhdv_smoker
+    user: "0"
+    restart: unless-stopped
+    networks: [appnet]
+    volumes:
+      - "F:/dhdv_stack_v_2.9/logs:/logs"
+      - "F:/dhdv_stack_v_2.9/scripts/smoker.sh:/smoker.sh:ro"
+    entrypoint: []
+    command: ["/bin/sh","-lc","sh /smoker.sh"]
+
+
+networks:
+  appnet:
+    external: true
+    name: dhdv_stack_v_29_appnet
+
+volumes:
+  mssql-data:
+    external: true
+    name: dhdv_stack_v_29_mssql-data

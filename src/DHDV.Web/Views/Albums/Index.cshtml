@@ -1,40 +1,69 @@
-﻿@model System.Collections.IEnumerable
-@{ ViewData["Title"]="Albums"; string fallback = Url.Content("~/img/cover.png"); var q = (string?)ViewData["q"] ?? ""; }
+﻿@model IEnumerable<DHDV.Web.Controllers.AlbumListItem>
+@{
+    ViewData["Title"] = "Albums";
+    var q = (string?)ViewData["q"] ?? "";
+    var total = (int)(ViewData["Total"] ?? 0);
+    var page = (int)(ViewData["Page"] ?? 1);
+    var pageSize = (int)(ViewData["PageSize"] ?? 24);
+    var pages = total > 0 ? (int)Math.Ceiling((double)total / pageSize) : 1;
+}
 
-<h2 class="mb-3">Albums</h2>
+<h1 class="mb-3">Albums</h1>
 
-<form method="get" class="row g-2 mb-3">
-  <div class="col-sm-6 col-md-4">
-    <input name="q" value="@q" class="form-control" placeholder="Tìm tên / mô tả album">
-  </div>
-  <div class="col-auto"><button class="btn btn-primary" type="submit">Lọc</button></div>
+<form method="get" class="d-flex gap-2 mb-3" role="search">
+    <input class="form-control" type="search" name="q" value="@q" placeholder="Tìm theo tiêu đề/nội dung…" />
+    <input type="hidden" name="pageSize" value="@pageSize" />
+    <button class="btn btn-primary">Tìm</button>
+    @if (!string.IsNullOrWhiteSpace(q))
+    {
+        <a class="btn btn-outline-secondary" href="/Albums">Clear</a>
+    }
 </form>
 
-@if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err)) {
-  <div class="alert alert-warning">Tạm thời không tải được dữ liệu album.</div>
-}
-
-<div class="row g-3">
-@foreach (var a in Model)
+@if (!Model.Any())
 {
-  var t     = a.GetType();
-  var id    = t.GetProperty("Id")?.GetValue(a);
-  var name  = Convert.ToString(t.GetProperty("Name")?.GetValue(a) ?? $"Album #{id}");
-  var cover = Convert.ToString(
-                t.GetProperty("CoverImage")?.GetValue(a) ??
-                t.GetProperty("CoverUrl")?.GetValue(a) ??
-                fallback
-              );
-  <div class="col-6 col-md-4 col-lg-3">
-    <a asp-action="Details" asp-route-id="@id" class="text-decoration-none text-dark">
-      <div class="card shadow-sm">
-        <img src="@cover" onerror="this.src='@fallback';"
-             class="w-100" style="aspect-ratio:4/3;object-fit:cover;border-top-left-radius:.25rem;border-top-right-radius:.25rem;">
-        <div class="card-body p-2">
-          <div class="fw-semibold text-truncate" title="@name">@name</div>
-        </div>
-      </div>
-    </a>
-  </div>
+    <div class="alert alert-warning">Không có album.</div>
 }
-</div>
+else
+{
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+    @foreach (var a in Model)
+    {
+        var cover = string.IsNullOrWhiteSpace(a.CoverUrl) ? Url.Content("~/img/cover.webp") : a.CoverUrl;
+        <div class="col">
+            <div class="card h-100">
+                <img class="card-img-top" src="@cover" alt="@a.Title" loading="lazy"
+                     onerror="this.onerror=null;this.src='/img/cover.webp';" />
+                <div class="card-body">
+                    <h5 class="card-title">@a.Title</h5>
+                    @if (!string.IsNullOrWhiteSpace(a.Description))
+                    {
+                        <p class="card-text text-muted">@a.Description</p>
+                    }
+                    <a class="btn btn-sm btn-outline-primary" href="/Photos?albumId=@a.Id">Xem ảnh</a>
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+
+    @if (pages > 1)
+    {
+        <nav class="mt-3" aria-label="Album pages">
+            <ul class="pagination">
+                <li class="page-item @(page <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="?q=@q&page=@(page-1)&pageSize=@pageSize">«</a>
+                </li>
+                @for (var p=1; p<=pages; p++)
+                {
+                    <li class="page-item @(p==page ? "active" : "")">
+                        <a class="page-link" href="?q=@q&page=@p&pageSize=@pageSize">@p</a>
+                    </li>
+                }
+                <li class="page-item @(page >= pages ? "disabled" : "")">
+                    <a class="page-link" href="?q=@q&page=@(page+1)&pageSize=@pageSize">»</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

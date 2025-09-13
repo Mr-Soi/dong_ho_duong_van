@@ -23,3 +23,4 @@ handoff/*.tar
 /publish/
 /backup/*.bak
 /db/*.zip
+logs/*.log
