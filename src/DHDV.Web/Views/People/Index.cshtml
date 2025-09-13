@@ -1,46 +1,99 @@
 @model IEnumerable<DHDV.Web.ViewModels.PeopleListItem>
-@{ ViewData["Title"]="Gia phả"; var avatar=Url.Content("~/img/avatar.png"); var q = (string?)ViewData["q"] ?? ""; int? gen = (int?)ViewData["gen"]; }
-@{ ViewData["Title"]="Gia phả"; }
-@await Html.PartialAsync("_Breadcrumb", (("Gia phả","/People")))
+@{
+    ViewData["Title"] = "People";
+    var q=(string?)ViewData["q"]??""; int? gen=(int?)ViewData["gen"];
+    var branch=(string?)ViewData["branch"]??""; var sort=((string?)ViewData["sort"]??"name").ToLowerInvariant();
+    var total=(int)(ViewData["Total"]??0); var page=(int)(ViewData["Page"]??1); var pageSize=(int)(ViewData["PageSize"]??24);
+    var pages = total>0 ? (int)Math.Ceiling((double)total/pageSize) : 1;
+    var fallbackImg = Url.Content("~/img/avatar.png");
+}
+<nav class="breadcrumb mb-2">
+  <a href="/">Home</a> / <span>People</span>
+</nav>
 
-<h2 class="mb-3">Gia phả</h2>
+<h1 class="mb-3">Danh sách thành viên</h1>
 
-<form method="get" class="row g-2 mb-3">
-  <div class="col-sm-6 col-md-4">
-    <input name="q" value="@q" class="form-control" placeholder="Tìm tên / bí danh">
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-sm-4">
+    <label class="form-label">Tìm kiếm</label>
+    <input class="form-control" name="q" value="@q" placeholder="Tên / bí danh…" />
   </div>
-  <div class="col-sm-3 col-md-2">
-    <select name="gen" class="form-select">
-      <option value="">Đời (tất cả)</option>
-      @for (var i=1;i<=20;i++){
-        <option value="@i" @(gen==i?"selected":null)>Đời @i</option>
-      }
+  <div class="col-sm-2">
+    <label class="form-label">Đời (gen)</label>
+    <input class="form-control" type="number" name="gen" value="@(gen?.ToString() ?? "")" />
+  </div>
+  <div class="col-sm-3">
+    <label class="form-label">Ngành (Branch)</label>
+    <input class="form-control" name="branch" value="@branch" placeholder="VD: Trưởng / Thứ…" />
+  </div>
+  <div class="col-sm-2">
+    <label class="form-label">Sắp xếp</label>
+    <select class="form-select" name="sort">
+      <option value="name" selected="@(sort=="name")">Theo tên</option>
+      <option value="gen"  selected="@(sort=="gen")">Theo đời</option>
     </select>
   </div>
-  <div class="col-auto">
-    <button class="btn btn-primary" type="submit">Lọc</button>
+  <div class="col-sm-1 d-grid">
+    <input type="hidden" name="pageSize" value="@pageSize" />
+    <button class="btn btn-primary">Lọc</button>
   </div>
+  @if (!string.IsNullOrWhiteSpace(q) || gen.HasValue || !string.IsNullOrWhiteSpace(branch) || sort!="name")
+  { <div class="col-auto"><a class="btn btn-outline-secondary" href="/People">Clear</a></div> }
 </form>
 
-<div class="row g-3">
-@if (!Model.Any()) { <div class="text-muted">Không có kết quả.</div> }
-@foreach (var p in Model)
+@if (!Model.Any())
 {
-  <div class="col-12 col-md-6 col-lg-4">
-    <a asp-controller="People" asp-action="Details" asp-route-id="@p.Id" class="card shadow-sm text-decoration-none text-dark p-3">
-      <div class="d-flex align-items-center gap-3">
+  <div class="alert alert-warning">Không có bản ghi.</div>
+}
+else
+{
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+  @foreach (var p in Model)
+  {
+    <div class="col">
+      <div class="card h-100">
         <img class="card-img-top"
-            src="@img" alt="@p.Name"
-            width="400" height="400"
-            loading="lazy" decoding="async"
-            style="aspect-ratio:1/1"
-            onerror="this.onerror=null;this.src='/img/avatar.png';" />
-        <div>
-          <div class="fw-semibold">@p.Name</div>
-          @if(p.Generation!=null){<div class="text-muted small">Đời @p.Generation</div>}
+             src="@fallbackImg" alt="@p.Name"
+             width="400" height="400"
+             loading="lazy" decoding="async"
+             style="aspect-ratio:1/1;object-fit:cover"
+             onerror="this.onerror=null;this.src='/img/avatar.png';" />
+        <div class="card-body">
+          <h5 class="card-title mb-1">@p.Name</h5>
+          @if (!string.IsNullOrWhiteSpace(p.SpouseName))
+          { <div class="small text-secondary mb-1">(vợ/chồng: @p.SpouseName)</div> }
+          <p class="text-muted mb-1">
+            @if (p.Generation.HasValue) { <text>Đời: @p.Generation</text> }
+            @if (!string.IsNullOrWhiteSpace(p.Branch)) { <text> · Ngành: @p.Branch</text> }
+          </p>
+          <p class="small text-secondary mb-2">
+            @if (p.BirthYear.HasValue) { <text>Sinh: @p.BirthYear</text> }
+            @if (p.DeathYear.HasValue) { <text> · Mất: @p.DeathYear</text> }
+          </p>
+          <a class="btn btn-sm btn-outline-primary" href="/People/Details/@p.Id">Chi tiết</a>
         </div>
       </div>
-    </a>
+    </div>
+  }
   </div>
+
+  @if (pages > 1)
+  {
+    <nav class="mt-3" aria-label="People pages">
+      <ul class="pagination">
+        <li class="page-item @(page<=1?"disabled":"")">
+          <a class="page-link" href="?q=@q&gen=@gen&branch=@branch&sort=@sort&page=@(page-1)&pageSize=@pageSize">«</a>
+        </li>
+        @for (var i = 1; i <= pages; i++)
+        {
+          <li class="page-item @(i==page?"active":"")">
+            <a class="page-link" href="?q=@q&gen=@gen&branch=@branch&sort=@sort&page=@i&pageSize=@pageSize">@i</a>
+          </li>
+        }
+        <li class="page-item @(page>=pages?"disabled":"")">
+          <a class="page-link" href="?q=@q&gen=@gen&branch=@branch&sort=@sort&page=@(page+1)&pageSize=@pageSize">»</a>
+        </li>
+      </ul>
+    </nav>
+  }
 }
-</div>
