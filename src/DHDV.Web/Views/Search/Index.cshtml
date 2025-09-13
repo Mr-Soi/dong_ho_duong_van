@@ -1,0 +1,61 @@
+@model DHDV.Web.Controllers.SearchResultVM
+@{
+    ViewData["Title"] = "Tìm kiếm";
+    var q = Model.Q ?? "";
+}
+
+<h1 class="mb-3">Tìm kiếm</h1>
+
+<form method="get" class="row g-2 align-items-end mb-4">
+  <div class="col-md-8">
+    <label class="form-label">Từ khóa</label>
+    <input class="form-control" name="q" value="@q" placeholder="Tìm People / Albums / Posts…" />
+  </div>
+  <div class="col-md-2 d-grid">
+    <button class="btn btn-primary">Tìm</button>
+  </div>
+</form>
+
+@if (string.IsNullOrWhiteSpace(q))
+{
+  <div class="alert alert-info">Nhập từ khóa để bắt đầu.</div>
+}
+else if (!Model.HasAny)
+{
+  <div class="alert alert-warning">Không tìm thấy kết quả cho: <strong>@q</strong></div>
+}
+else
+{
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card p-3 h-100">
+        <h5 class="mb-3">People</h5>
+        @if (Model.People?.Any()==true){
+          <ul class="mb-0">
+            @foreach (var x in Model.People){ <li><a href="/People/Details/@x.Id">@x.Title</a></li> }
+          </ul>
+        } else { <div class="text-muted">—</div> }
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card p-3 h-100">
+        <h5 class="mb-3">Albums</h5>
+        @if (Model.Albums?.Any()==true){
+          <ul class="mb-0">
+            @foreach (var x in Model.Albums){ <li><a href="/Photos?albumId=@x.Id">@x.Title</a></li> }
+          </ul>
+        } else { <div class="text-muted">—</div> }
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card p-3 h-100">
+        <h5 class="mb-3">Posts</h5>
+        @if (Model.Posts?.Any()==true){
+          <ul class="mb-0">
+            @foreach (var x in Model.Posts){ <li><a href="/Posts/Details/@x.Id">@x.Title</a></li> }
+          </ul>
+        } else { <div class="text-muted">—</div> }
+      </div>
+    </div>
+  </div>
+}

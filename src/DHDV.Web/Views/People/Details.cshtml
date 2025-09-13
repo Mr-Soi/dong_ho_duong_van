@@ -1,37 +1,86 @@
 @model DHDV.Web.ViewModels.PersonDetails
 @{
-    ViewData["Title"]=Model?.Name??"Thành viên";
-    var avatar=Url.Content("~/img/avatar.png");
+    ViewData["Title"] = Model.Name;
+    string L(int? y)=>y.HasValue?y.Value.ToString():"—";
 }
-@if (Model == null){ <div class="alert alert-warning">Không tìm thấy dữ liệu.</div> }
-else {
-<section class="mx-auto" style="max-width:900px">
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <img src="@avatar" alt="@Model.Name" class="person-avatar" />
-    <div>
+
+<nav class="breadcrumb mb-2">
+  <a href="/">Home</a> / <a href="/People">People</a> / <span>@Model.Name</span>
+</nav>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card p-3">
       <h2 class="mb-1">@Model.Name</h2>
-      @if(Model.Generation!=null){<div class="text-muted">Đời @Model.Generation</div>}
+      <p class="text-muted mb-2">
+        @if (Model.Generation.HasValue){<text>Đời: @Model.Generation</text>}
+        @if (!string.IsNullOrWhiteSpace(Model.Branch)){<text> · Ngành: @Model.Branch</text>}
+      </p>
+      <p class="mb-0">Sinh: @L(Model.BirthYear) · Mất: @L(Model.DeathYear)</p>
+      @if (!string.IsNullOrWhiteSpace(Model.Alias)){<p class="mt-2">Bí danh: <strong>@Model.Alias</strong></p>}
+    </div>
+
+    <div class="card p-3 mt-3">
+      <h5 class="mb-3">Anh/Chị/Em</h5>
+      @if (Model.Siblings?.Any() == true){
+        <ul class="mb-0">
+          @foreach (var s in Model.Siblings){ <li><a href="/People/Details/@s.Id">@s.Name</a></li> }
+        </ul>
+      } else { <div class="text-muted">—</div> }
+    </div>
+
+    <div class="card p-3 mt-3">
+      <h5 class="mb-3">Con</h5>
+      @if (Model.Children?.Any() == true){
+        <ul class="mb-0">
+          @foreach (var c in Model.Children){ <li><a href="/People/Details/@c.Id">@c.Name</a></li> }
+        </ul>
+      } else { <div class="text-muted">—</div> }
     </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="card p-3">
-        <div class="fw-semibold mb-2">Cha mẹ</div>
-        @if (Model.FatherId!=null){ <div>Cha: <a asp-action="Details" asp-route-id="@Model.FatherId">@Model.FatherName ?? "Xem"</a></div> }
-        @if (Model.MotherId!=null){ <div>Mẹ: <a asp-action="Details" asp-route-id="@Model.MotherId">@Model.MotherName ?? "Xem"</a></div> }
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card p-3">
-        <div class="fw-semibold mb-2">Con</div>
-        @if (Model.Children?.Any()==true){
-          <ul class="mb-0">
-            @foreach (var c in Model.Children){ <li><a asp-action="Details" asp-route-id="@c.Id">@c.Name</a></li> }
+  <div class="col-lg-4">
+    <div class="card p-3 family-box">
+      <h5 class="mb-3">Gia đình</h5>
+
+      <div class="mb-2">
+        <div class="text-secondary small">Vợ/Chồng</div>
+        @if (Model.Spouses?.Any()==true){
+          <ul class="mb-2">
+            @foreach (var sp in Model.Spouses){ <li><a href="/People/Details/@sp.Id">@sp.Name</a></li> }
           </ul>
-        } else { <div class="text-muted">—</div> }
+        } else { <span>—</span> }
+      </div>
+
+      <div class="mb-2">
+        <div class="text-secondary small">Cha</div>
+        @if (Model.FatherId.HasValue){ <a href="/People/Details/@Model.FatherId">@Model.FatherName</a> } else { <span>—</span> }
+      </div>
+
+      <div class="mb-3">
+        <div class="text-secondary small">Mẹ</div>
+        @if (Model.MotherId.HasValue){ <a href="/People/Details/@Model.MotherId">@Model.MotherName</a> } else { <span>—</span> }
+      </div>
+
+      <h6 class="mb-2">Ông bà nội</h6>
+      <div class="mb-2">
+        <div class="text-secondary small">Ông nội</div>
+        @if (Model.PaternalGrandFatherId.HasValue){ <a href="/People/Details/@Model.PaternalGrandFatherId">@Model.PaternalGrandFatherName</a> } else { <span>—</span> }
+      </div>
+      <div class="mb-3">
+        <div class="text-secondary small">Bà nội</div>
+        @if (Model.PaternalGrandMotherId.HasValue){ <a href="/People/Details/@Model.PaternalGrandMotherId">@Model.PaternalGrandMotherName</a> } else { <span>—</span> }
+      </div>
+
+      <h6 class="mb-2">Ông bà ngoại</h6>
+      <div class="mb-2">
+        <div class="text-secondary small">Ông ngoại</div>
+        @if (Model.MaternalGrandFatherId.HasValue){ <a href="/People/Details/@Model.MaternalGrandFatherId">@Model.MaternalGrandFatherName</a> } else { <span>—</span> }
+      </div>
+      <div>
+        <div class="text-secondary small">Bà ngoại</div>
+        @if (Model.MaternalGrandMotherId.HasValue){ <a href="/People/Details/@Model.MaternalGrandMotherId">@Model.MaternalGrandMotherName</a> } else { <span>—</span> }
       </div>
     </div>
   </div>
-</section>
-}
+</div>

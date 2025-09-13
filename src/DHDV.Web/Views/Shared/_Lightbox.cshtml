@@ -1,0 +1,30 @@
+<style>
+.lb-backdrop{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:1050}
+.lb-backdrop img{max-width:min(96vw,1400px);max-height:90vh;box-shadow:0 10px 30px #0008;border-radius:6px}
+.lb-backdrop.show{display:flex}
+.lb-backdrop .lb-x{position:absolute;top:12px;right:16px;font-size:22px;color:#fff;cursor:pointer}
+.lb-backdrop .lb-arrow{position:absolute;top:50%;transform:translateY(-50%);font-size:32px;color:#fff;user-select:none;cursor:pointer;padding:.25rem .5rem}
+.lb-backdrop .lb-prev{left:10px} .lb-backdrop .lb-next{right:10px}
+</style>
+<div id="lb" class="lb-backdrop">
+  <span class="lb-x">✕</span>
+  <span class="lb-arrow lb-prev">‹</span>
+  <img/>
+  <span class="lb-arrow lb-next">›</span>
+</div>
+<script>
+(()=>{const wrap=document.querySelector(".js-lightbox"); if(!wrap) return;
+ const items=[...wrap.querySelectorAll("img")]; let i=-1;
+ const lb=document.getElementById("lb"),img=lb.querySelector("img"),
+       prev=lb.querySelector(".lb-prev"),next=lb.querySelector(".lb-next");
+ const open=k=>{i=k; img.src=items[i].dataset.full||items[i].src; lb.classList.add("show");};
+ const close=()=>lb.classList.remove("show");
+ const step=d=>{ if(i<0) return; i=(i+d+items.length)%items.length; open(i); };
+ wrap.addEventListener("click",e=>{const t=e.target.closest("img"); if(!t) return;
+   e.preventDefault(); open(items.indexOf(t));});
+ lb.addEventListener("click",e=>{ if(e.target===lb||e.target.classList.contains("lb-x")) close(); });
+ prev.addEventListener("click",()=>step(-1)); next.addEventListener("click",()=>step(1));
+ document.addEventListener("keydown",e=>{ if(!lb.classList.contains("show")) return;
+   if(e.key==="Escape") close(); else if(e.key==="ArrowLeft") step(-1); else if(e.key==="ArrowRight") step(1);});
+})();
+</script>

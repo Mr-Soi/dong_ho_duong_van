@@ -1,19 +1,24 @@
-@model object
+@model DHDV.Web.Models.Album
 @{
-    var t = Model.GetType();
-    var name  = Convert.ToString(t.GetProperty("Name")?.GetValue(Model) ?? "Album");
-    var cover = Convert.ToString(t.GetProperty("CoverImage")?.GetValue(Model)
-              ?? t.GetProperty("CoverUrl")?.GetValue(Model)
-              ?? Url.Content("~/img/cover.png"));
-    var desc  = Convert.ToString(t.GetProperty("Description")?.GetValue(Model) ?? "");
-    ViewData["Title"] = name;
+  ViewData["Title"] = Model.Title;
 }
-<section class="mx-auto" style="max-width:980px">
-  <h1 class="mb-2">@name</h1>
-  <img src="@cover" onerror="this.src='@Url.Content("~/img/cover.png")';"
-       class="w-100 mb-3" style="aspect-ratio:4/2;object-fit:cover;border-radius:.5rem;">
-  @if (!string.IsNullOrWhiteSpace(desc)) { <p class="text-muted">@desc</p> }
-  <a asp-action="Index" class="btn btn-outline-secondary mt-3">← Quay lại Albums</a>
+<section class="wrap">
+  <nav class="breadcrumb">
+    <a asp-controller="Albums" asp-action="Index">Albums</a> <span>/</span>
+    <span>@Model.Title</span>
+  </nav>
 
+  <article class="article">
+    <h1>@Model.Title</h1>
+    <div class="a-meta">Tạo: @Model.CreatedAt:yyyy-MM-dd</div>
 
+    <figure class="hero">
+      <img src="@(string.IsNullOrWhiteSpace(Model.CoverUrl) ? Url.Content("~/img/cover.webp") : Model.CoverUrl)"
+           alt="@Model.Title" />
+      @if (!string.IsNullOrWhiteSpace(Model.Description))
+      {
+        <figcaption class="muted">@Model.Description</figcaption>
+      }
+    </figure>
+  </article>
 </section>

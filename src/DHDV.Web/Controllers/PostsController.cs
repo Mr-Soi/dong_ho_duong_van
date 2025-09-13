@@ -1,38 +1,56 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using DHDV.Web.Data;
-using DHDV.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-public class PostsController : Controller
+namespace DHDV.Web.Controllers
 {
-    private readonly AppDbContext _db;
-    public PostsController(AppDbContext db) { _db = db; }
-
-    public async Task<IActionResult> Index(int? categoryId)
+    [Route("[controller]")]
+    public class PostsController : Controller
     {
-        var q = _db.Posts.Include(p => p.Category)
-                 .Where(p => p.IsPublished && p.PublishedAt >= new DateTime(1950,1,1) && !p.IsDeleted);
+        private readonly AppDbContext _db;
+        public PostsController(AppDbContext db) { _db = db; }
 
-        if (categoryId.HasValue) q = q.Where(p => p.CategoryId == categoryId.Value);
+        // /Posts?q=&page=1&pageSize=10
+        [HttpGet("")]
+        public async Task<IActionResult> Index(string q = "", int page = 1, int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 50) pageSize = 50;
 
-        ViewBag.Categories = await _db.Categories.OrderBy(c=>c.Name).ToListAsync();
-        ViewBag.Selected   = categoryId.HasValue ? await _db.Categories.Where(c=>c.Id==categoryId)
-                                .Select(c=>c.Name).FirstOrDefaultAsync() : null;
+            var posts = _db.Posts.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var k = q.Trim();
+                posts = posts.Where(p =>
+                    (p.Title != null && p.Title.Contains(k)) ||
+                    (p.Content != null && p.Content.Contains(k)));
+            }
 
-        var items = await q.OrderByDescending(p => p.PublishedAt).ToListAsync();
-        return View(items);
+            var total = await posts.CountAsync();
+            var items = await posts
+                .OrderByDescending(p => p.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new PostItem
+                {
+                    Id = p.Id,
+                    Title = p.Title ?? ("Post #" + p.Id),
+                    PublishedAt = p.PublishedAt
+                })
+                .ToListAsync();
+
+            ViewData["q"] = q; ViewData["Total"] = total; ViewData["Page"] = page; ViewData["PageSize"] = pageSize;
+            return View(items);
+        }
     }
 
-    public async Task<IActionResult> Details(int id)
+    public class PostItem
     {
-        var p = await _db.Posts
-            .Include(x => x.Category)
-            .FirstOrDefaultAsync(x => x.Id == id && x.IsPublished && !x.IsDeleted);
-
-        if (p == null) return NotFound();
-        return View(p);
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public System.DateTime? PublishedAt { get; set; }
     }
 }
