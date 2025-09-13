@@ -12,7 +12,7 @@ namespace DHDV.Web.Controllers
         private readonly AppDbContext _db;
         public AlbumsController(AppDbContext db) { _db = db; }
 
-        // Search + Pagination
+        // /Albums?q=&page=1&pageSize=24
         [HttpGet("")]
         public async Task<IActionResult> Index(string q = "", int page = 1, int pageSize = 24)
         {
@@ -21,7 +21,6 @@ namespace DHDV.Web.Controllers
             if (pageSize > 200) pageSize = 200;
 
             var albums = _db.Albums.AsNoTracking();
-
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var k = q.Trim();
@@ -32,23 +31,24 @@ namespace DHDV.Web.Controllers
 
             var total = await albums.CountAsync();
 
-            var items = await albums
-                .OrderByDescending(a => a.Id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            var items = await albums.OrderByDescending(a => a.Id)
+                .Skip((page - 1) * pageSize).Take(pageSize)
                 .Select(a => new AlbumListItem
                 {
                     Id = a.Id,
                     Title = a.Title ?? ("Album #" + a.Id),
                     Description = a.Description,
-                    CoverUrl = a.CoverImageUrl // nếu model khác tên, đổi tại đây
-                })
-                .ToListAsync();
+                    CoverUrl = _db.Photos.Where(p => p.AlbumId == a.Id)
+                                .OrderBy(p => p.Id).Select(p => p.ThumbUrl ?? p.Url).FirstOrDefault()
+                }).ToListAsync();
 
-            ViewData["q"] = q;
-            ViewData["Total"] = total;
-            ViewData["Page"] = page;
-            ViewData["PageSize"] = pageSize;
+            ViewData["q"] = q; ViewData["Total"] = total; ViewData["Page"] = page; ViewData["PageSize"] = pageSize;
+
+            this.SetOg(
+                title: "Albums · Dòng họ Dương Văn",
+                image: Url.Content("~/img/cover.webp"),
+                url:   $"{Request.Scheme}://{Request.Host}/Albums"
+            );
 
             return View(items);
         }
