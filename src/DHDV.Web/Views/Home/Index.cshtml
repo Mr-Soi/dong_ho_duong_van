@@ -1,108 +1,20 @@
-﻿@model DHDV.Web.Models.HomeIndexVM
-@{
-    ViewData["Title"] = "Trang chủ";
-    string Fallback = Url.Content("~/img/cover.png");
-    string AvatarFallback = Url.Content("~/img/avatar.png");
+﻿@{
+  ViewData["Title"]="Dòng họ Dương Văn";
 }
-@functions{
-    string SanitizeImagePath(string? s){
-        if (string.IsNullOrWhiteSpace(s)) return "";
-        var p = s.Replace("\\","/").Trim();
-        foreach (var ext in new[]{".jpeg",".jpg",".png",".webp",".svg"}){
-            var i = p.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
-            if (i >= 0){ p = p.Substring(0, i+ext.Length); break; }
-        } return p;
-    }
-    string FixPath(string? s, string fallback){
-        var p = SanitizeImagePath(s);
-        if (string.IsNullOrWhiteSpace(p)) return fallback;
-        if (p.StartsWith("~/")) p = p.Substring(1);
-        if (!p.StartsWith("/")) p = "/" + p;
-        return p;
-    }
-    string NameFallback(object o){
-        var t=o.GetType();
-        string? get(string n)=> t.GetProperty(n)?.GetValue(o)?.ToString();
-        var id   = get("Id");
-        var name = get("FullName") ?? get("DisplayName") ?? get("Alias")
-                ?? get("Name") ?? get("FullNameNorm") ?? get("DisplayNameNorm") ?? get("AliasNorm");
-        return string.IsNullOrWhiteSpace(name) ? $"Thành viên #{id}" : name!;
-    }
-    string GenFallback(object o){
-        var t=o.GetType(); var v=t.GetProperty("Generation")?.GetValue(o);
-        return v?.ToString() ?? "";
-    }
-}
-<section class="hero rounded-4 mb-4 p-5 text-white" style="background:linear-gradient(135deg,#0d6efd,#6610f2)">
-  <div class="container px-0">
-    <h1 class="display-6 fw-bold mb-2">Cổng thông tin Dòng họ Dương Văn</h1>
-    <p class="lead mb-3">Kết nối gia phả, gìn giữ truyền thống, lan tỏa tri thức.</p>
-    <div class="d-flex gap-2">
-      <a class="btn btn-light btn-sm" href="/Posts">Bản tin</a>
-      <a class="btn btn-outline-light btn-sm" href="/Albums">Thư viện ảnh</a>
+<section class="hero">
+  <div class="hero__body">
+    <h1 class="display-5">Dòng họ Dương Văn</h1>
+    <p class="lead">Kho tư liệu  phả hệ  hình ảnh  bài viết của dòng họ.</p>
+
+    <form class="hero__search" method="get" action="/Search">
+      <input name="q" placeholder="Tìm People / Albums / Posts" />
+      <button class="btn btn-primary">Tìm</button>
+    </form>
+
+    <div class="tiles">
+      <a class="tile" href="/People"><strong>People</strong><span>Danh sách thành viên</span></a>
+      <a class="tile" href="/Albums"><strong>Albums</strong><span>Bộ sưu tập ảnh</span></a>
+      <a class="tile" href="/Posts"><strong>Posts</strong><span>Bài viết  tin tức</span></a>
     </div>
   </div>
 </section>
-
-<div class="row g-4">
-  <div class="col-lg-8">
-    <h5 class="mb-3">Bản tin mới</h5>
-    @foreach (var p in (Model?.Posts ?? Enumerable.Empty<DHDV.Web.Models.Post>()))
-    {
-        var title = p?.Title ?? "Bài viết";
-        var url   = $"/Posts/Details/{p?.Id}";
-        var cover = FixPath(p?.CoverImage, Fallback);
-        var ext   = System.IO.Path.GetExtension(cover);
-        var webp  = string.IsNullOrWhiteSpace(ext) ? "" : cover[..^ext.Length] + ".webp";
-        var cat   = p?.Category?.Name ?? "Bản tin";
-        var date  = (p?.PublishedAt is DateTime dt) ? dt.ToString("dd/MM/yyyy") : "";
-        var sum   = p?.Summary ?? "";
-
-        <article class="card shadow-sm mb-3">
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <picture>
-                      <source srcset="@webp" type="image/webp">
-                      <img class="img-fluid rounded-start w-100 h-100 object-fit-cover"
-                           src="@cover" loading="lazy" decoding="async"
-                           onerror="this.src='@Fallback'" alt="cover">
-                    </picture>
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title mb-2">
-                            <a class="stretched-link text-decoration-none" href="@url">@title</a>
-                        </h5>
-                        <div class="text-muted small mb-2">
-                            <span class="badge bg-warning-subtle text-dark border me-2">@cat</span>@date
-                        </div>
-                        <p class="card-text mb-0">@sum</p>
-                    </div>
-                </div>
-            </div>
-        </article>
-    }
-  </div>
-
-  <div class="col-lg-4">
-    <h5 class="mb-3">Một số thành viên</h5>
-    <ul class="list-group list-group-flush shadow-sm rounded-3">
-    @foreach (var obj in (Model?.People ?? Enumerable.Empty<object>()))
-    {
-        var t   = obj.GetType();
-        var id  = t.GetProperty("Id")?.GetValue(obj);
-        var name= NameFallback(obj);
-        var gen = GenFallback(obj);
-
-        <li class="list-group-item d-flex align-items-center gap-2">
-            <div class="avatar bg-primary-subtle text-primary fw-bold rounded-circle d-inline-flex justify-content-center align-items-center"
-                 style="width:36px;height:36px">?</div>
-            <div class="flex-fill">
-                <a href="/People/Details/@id" class="text-decoration-none">@name</a>
-                @if(!string.IsNullOrWhiteSpace(gen)){ <div class="small text-muted">Đời @gen</div> }
-            </div>
-        </li>
-    }
-    </ul>
-  </div>
-</div>

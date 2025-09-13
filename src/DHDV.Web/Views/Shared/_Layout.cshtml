@@ -50,3 +50,20 @@
   @RenderSection("Scripts", required: false)
 </body>
 </html>
+@{
+  var siteName = "Dòng họ Dương Văn";
+  var siteUrl  = "https://donghoduongvan.com";
+  var ogImg    = Url.Content("~/img/cover.webp");
+  var title    = ViewData["Title"] as string ?? siteName;
+}
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="@siteName" />
+<meta property="og:title" content="@title" />
+<meta property="og:url" content="@siteUrl@Context.Request.Path" />
+<meta property="og:image" content="@ogImg" />
+<meta property="og:locale" content="vi_VN" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="@title" />
+<meta name="twitter:image" content="@ogImg" />
+<link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
+<link rel="alternate icon" href="/assets/logo/avatar.webp" />
