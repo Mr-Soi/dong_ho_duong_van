@@ -12,7 +12,7 @@ namespace DHDV.Web.Controllers
         private readonly AppDbContext _db;
         public PostsController(AppDbContext db) { _db = db; }
 
-        // /Posts?q=&page=1&pageSize=10
+        // ... giữ nguyên using & lớp PostsController
         [HttpGet("")]
         public async Task<IActionResult> Index(string q = "", int page = 1, int pageSize = 10)
         {
@@ -30,10 +30,11 @@ namespace DHDV.Web.Controllers
             }
 
             var total = await posts.CountAsync();
-            var items = await posts.OrderByDescending(p => p.Id)
-                .Skip((page - 1) * pageSize).Take(pageSize)
-                .Select(p => new PostItem { Id = p.Id, Title = p.Title ?? ("Post #" + p.Id), PublishedAt = p.PublishedAt })
-                .ToListAsync();
+            var items = await posts
+                .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();   // <-- trả Post, không map PostItem
 
             ViewData["q"] = q; ViewData["Total"] = total; ViewData["Page"] = page; ViewData["PageSize"] = pageSize;
 
@@ -45,6 +46,7 @@ namespace DHDV.Web.Controllers
 
             return View(items);
         }
+
     }
 
     public class PostItem
