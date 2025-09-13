@@ -13,26 +13,34 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
+        // Lấy category "Bản tin/Tin tức" nếu có
         var catId = await _db.Categories
             .Where(c => c.Slug == "ban-tin" || c.Slug == "tin-tuc" || c.Name == "Bản tin" || c.Name == "Tin tức")
-            .Select(c => c.Id).FirstOrDefaultAsync();
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync();
 
+        // Null-safe: IsPublished ?? false; PublishedAt null → cho qua (hoặc dùng mốc tối thiểu)
+        var minDate = new DateTime(1950, 1, 1);
         var q = _db.Posts.AsQueryable()
-            .Where(p => p.IsPublished && p.PublishedAt >= new DateTime(1950, 1, 1));
+            .Where(p => (p.IsPublished ?? false) && (p.IsDeleted == false) && ((p.PublishedAt ?? minDate) >= minDate));
 
-        if (catId > 0) q = q.Where(p => p.CategoryId == catId);
+        if (catId > 0)
+            q = q.Where(p => p.CategoryId == catId);
 
         var vm = new HomeIndexVM
         {
-            Posts = await q.OrderByDescending(p => p.PublishedAt)
-                           .Take(9)
-                           .Include(p => p.Category)
-                           .ToListAsync(),
+            Posts = await q
+                .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
+                .Include(p => p.Category)
+                .Take(9)
+                .ToListAsync(),
+
             People = await _db.Persons
-                              .OrderByDescending(p => p.Id)
-                              .Take(10)
-                              .ToListAsync()
+                .OrderByDescending(p => p.Id)
+                .Take(10)
+                .ToListAsync()
         };
+
         return View(vm);
     }
 
