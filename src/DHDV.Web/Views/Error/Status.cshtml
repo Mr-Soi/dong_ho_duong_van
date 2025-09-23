@@ -1,0 +1,7 @@
+<!-- src/DHDV.Web/Views/Error/Status.cshtml -->
+@{ var code = (int?)ViewData["Code"] ?? 500; Layout = "_Layout"; ViewData["Title"] = $"Lỗi {code}"; }
+<section class="container py-10">
+  <h1 class="text-3xl font-bold mb-4">Lỗi @code</h1>
+  <p class="mb-6">Trang không tồn tại hoặc có sự cố hệ thống.</p>
+  <a class="underline" href="/">Về trang chủ</a>
+</section>

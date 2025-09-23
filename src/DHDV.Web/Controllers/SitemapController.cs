@@ -1,49 +1,42 @@
+// src/DHDV.Web/Controllers/SitemapController.cs
 using System.Text;
-using System.Xml.Linq;
 using DHDV.Web.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace DHDV.Web.Controllers
+namespace DHDV.Web.Controllers;
+public class SitemapController : Controller
 {
-    /// <summary>Dynamic sitemap.xml: liệt kê route chính + top items.</summary>
-    [Route("sitemap.xml")]
-    public class SitemapController : Controller
+    private readonly AppDbContext _db;
+    public SitemapController(AppDbContext db){ _db = db; }
+
+    [HttpGet("sitemap.xml")]
+    public async Task<IActionResult> Index()
     {
-        private readonly AppDbContext _db;
-        public SitemapController(AppDbContext db) { _db = db; }
-
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        var urls = new List<(string loc, DateTime? lastmod)>
         {
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
-            var urls = new List<string>
-            {
-                $"{baseUrl}/",
-                $"{baseUrl}/People",
-                $"{baseUrl}/Albums",
-                $"{baseUrl}/Posts"
-            };
+            ($"{baseUrl}/", null),
+            ($"{baseUrl}/People", null),
+            ($"{baseUrl}/Posts", null),
+            ($"{baseUrl}/Albums", null),
+        };
 
-            // Top People/Albums/Posts (giới hạn 100 để sitemap gọn)
-            var peopleIds = await _db.Persons.AsNoTracking()
-                .Where(x => !x.IsDeleted).OrderBy(x => x.Id).Select(x => x.Id).Take(100).ToListAsync();
-            urls.AddRange(peopleIds.Select(id => $"{baseUrl}/People/Details/{id}"));
+        var posts = await _db.Set<Post>().AsNoTracking().OrderByDescending(x=>x.Id).Select(x=>new{ x.Slug, x.PublishedAt, x.CreatedAt }).ToListAsync();
+        urls.AddRange(posts.Select(p => ($"{baseUrl}/Posts/{p.Slug}", p.PublishedAt ?? p.CreatedAt)));
 
-            var albumIds = await _db.Albums.AsNoTracking()
-                .OrderByDescending(x => x.Id).Select(x => x.Id).Take(100).ToListAsync();
-            urls.AddRange(albumIds.Select(id => $"{baseUrl}/Photos?albumId={id}"));
-
-            var postIds = await _db.Posts.AsNoTracking()
-                .OrderByDescending(x => x.Id).Select(x => x.Id).Take(100).ToListAsync();
-            urls.AddRange(postIds.Select(id => $"{baseUrl}/Posts/Details/{id}"));
-
-            XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
-            var doc = new XDocument(new XElement(ns + "urlset",
-                urls.Select(u => new XElement(ns + "url", new XElement(ns + "loc", u)))
-            ));
-            var xml = doc.ToString(SaveOptions.DisableFormatting);
-            return Content(xml, "application/xml", Encoding.UTF8);
+        var sb = new StringBuilder();
+        sb.Append("""<?xml version="1.0" encoding="UTF-8"?>""");
+        sb.Append("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""");
+        foreach (var (loc, last) in urls.DistinctBy(u=>u.loc))
+        {
+            sb.Append("<url><loc>").Append(loc).Append("</loc>");
+            if (last is DateTime dt) sb.Append("<lastmod>").Append(dt.ToString("yyyy-MM-dd")).Append("</lastmod>");
+            sb.Append("</url>");
         }
+        sb.Append("</urlset>");
+        return Content(sb.ToString(), "application/xml", Encoding.UTF8);
     }
+
+    private class Post { public int Id {get;set;} public string Slug {get;set;} = ""; public DateTime? PublishedAt {get;set;} public DateTime? CreatedAt {get;set;} }
 }

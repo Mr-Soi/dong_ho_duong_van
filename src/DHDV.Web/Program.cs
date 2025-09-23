@@ -1,55 +1,72 @@
-﻿using Microsoft.AspNetCore.HttpOverrides;
+﻿using DHDV.Web.Data;
 using Microsoft.EntityFrameworkCore;
-using DHDV.Web.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
-var cs = builder.Configuration.GetConnectionString("DefaultConnection")
-       ?? builder.Configuration["ConnectionStrings__DefaultConnection"]
-       ?? builder.Configuration["ConnectionStrings:DefaultConnection"];
-builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(cs));
+// ENV  appsettings
+string? Env(string k) => Environment.GetEnvironmentVariable(k);
+string? cs =
+    Env("ConnectionStrings__DHDV") ??
+    Env("ConnectionStrings__Default") ??
+    builder.Configuration.GetConnectionString("DHDV") ??
+    builder.Configuration.GetConnectionString("Default") ??
+    builder.Configuration["ConnectionStrings:DHDV"] ??
+    builder.Configuration["ConnectionStrings:Default"];
+if (string.IsNullOrWhiteSpace(cs))
+    throw new InvalidOperationException("Chưa cấu hình chuỗi kết nối.");
 
-// MVC
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(cs));
 builder.Services.AddControllersWithViews();
 
-// Response compression (gzip/br)
-builder.Services.AddResponseCompression(opt => { opt.EnableForHttps = true; });
-
 var app = builder.Build();
+// Program.cs – đặt NGAY sau var app = builder.Build();
+app.Use(async (ctx, next) =>
+{
+    var h = ctx.Response.Headers;
+    h["X-Content-Type-Options"] = "nosniff";
+    h["X-Frame-Options"] = "DENY";
+    h["Referrer-Policy"] = "no-referrer-when-downgrade";
+    h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    await next();
+});
 
-// Forwarded headers (Cloudflare)
-var fh = new ForwardedHeadersOptions {
-  ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor,
-  RequireHeaderSymmetry = false
-};
-fh.KnownNetworks.Clear(); fh.KnownProxies.Clear();
-app.UseForwardedHeaders(fh);
 
-// Compression
-app.UseResponseCompression();
+app.UseStatusCodePagesWithReExecute("/error/{0}");
+app.UseExceptionHandler("/error/500");
+// CF proxy headers
+app.UseForwardedHeaders(new ForwardedHeadersOptions{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
-// Static files + cache headers
+// Static files + cache
 app.UseStaticFiles(new StaticFileOptions {
   OnPrepareResponse = ctx => {
-    var path = ctx.File.PhysicalPath?.ToLowerInvariant() ?? "";
-    var h = ctx.Context.Response.Headers;
-    if (path.EndsWith(".css") || path.EndsWith(".js") ||
-        path.EndsWith(".png") || path.EndsWith(".jpg") ||
-        path.EndsWith(".jpeg")|| path.EndsWith(".webp") ||
-        path.EndsWith(".svg") || path.EndsWith(".woff2") || path.EndsWith(".woff"))
-      h["Cache-Control"] = "public,max-age=31536000,immutable";
-    else if (path.EndsWith("robots.txt") || path.EndsWith("sitemap.xml"))
-      h["Cache-Control"] = "public,max-age=3600";
+    var p = ctx.File.Name.ToLowerInvariant();
+    if (p.EndsWith(".css")||p.EndsWith(".js")||p.EndsWith(".png")||p.EndsWith(".jpg")||p.EndsWith(".jpeg")||p.EndsWith(".webp"))
+      ctx.Context.Response.Headers["Cache-Control"]="public, max-age=31536000, immutable";
+    else
+      ctx.Context.Response.Headers["Cache-Control"]="public, max-age=300";
   }
 });
 
+if (!app.Environment.IsDevelopment())
+    app.UseExceptionHandler("/error");
+
 app.UseRouting();
+app.UseAuthorization();
 
-app.MapGet("/ping", () => Results.Ok("pong"));
+// routes
+app.MapControllerRoute(
+    name: "postBySlug",
+    pattern: "Posts/{slug}",
+    defaults: new { controller = "Posts", action = "SlugRouter" });
 
-// Redirect root nếu muốn:
-// app.MapGet("/", () => Results.Redirect("/People", false));
+app.MapGet("/ready", () => Results.Ok("ok"));
+app.MapGet("/healthz", () => Results.Ok("OK"));
 
-app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=People}/{action=Index}/{id?}");
+
 app.Run();

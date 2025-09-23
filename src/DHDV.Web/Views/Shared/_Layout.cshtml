@@ -1,78 +1,54 @@
 ﻿@{
-    var siteName = "Dòng họ Dương Văn";
-    var siteUrl  = "https://donghoduongvan.com";
-    var title    = (ViewData["OgTitle"] as string) ?? (ViewData["Title"] as string) ?? siteName;
-    var ogImg    = (ViewData["OgImage"] as string) ?? Url.Content("~/img/cover.webp");
-    var pageUrl  = (ViewData["OgUrl"]   as string) ?? $"{siteUrl}{Context.Request.Path}";
-    var desc     = (ViewData["OgDesc"]  as string) ?? "Kho tư liệu – phả hệ – hình ảnh – bài viết của dòng họ.";
+    Layout = null;
+    var title = ViewData["Title"] as string ?? "Dòng họ Dương Văn";
 }
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Dòng họ Dương Văn - thông tin gia phả, hình ảnh, bài viết.">
+  <meta property="og:title" content="Dòng họ Dương Văn">
+  <meta property="og:description" content="Trang thông tin chính thức của dòng họ Dương Văn.">
+  <meta property="og:url" content="https://donghoduongvan.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/img/cover.webp">
+  <meta name="twitter:card" content="summary_large_image">
 
-    <title>@title</title>
-    <meta name="description" content="@desc" />
+  <title>@title</title>
+  <link rel="icon" type="image/png" href="~/assets/logo/avatar.webp" />
+  <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+  <link rel="stylesheet" href="~/css/dhdv.mobile.css?v=2" />
+  <link rel="stylesheet" href="~/css/site.ui-upgrade.css" asp-append-version="true" />
 
-    <!-- OpenGraph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="@siteName" />
-    <meta property="og:title" content="@title" />
-    <meta property="og:description" content="@desc" />
-    <meta property="og:url" content="@pageUrl" />
-    <meta property="og:image" content="@ogImg" />
-    <meta property="og:locale" content="vi_VN" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="@title" />
-    <meta name="twitter:description" content="@desc" />
-    <meta name="twitter:image" content="@ogImg" />
-
-    <!-- Favicon -->
-    <environment include="Development">
-    <link rel="stylesheet" href="/css/site.css" />
-    <link rel="stylesheet" href="/css/dhdv.ui.css" />
-    </environment>
-    <environment exclude="Development">
-    <!-- Preload logo + CSS min -->
-    <link rel="preload" as="image" href="/assets/logo/duongvan_logo_horizontal.svg" />
-    <link rel="preload" as="style"  href="/css/site.min.css" />
-    <link rel="preload" as="style"  href="/css/dhdv.ui.min.css" />
-
-    <link rel="stylesheet" href="/css/site.min.css" />
-    <link rel="stylesheet" href="/css/dhdv.ui.min.css" />
-</environment>
-    @RenderSection("Styles", required: false)
+  @RenderSection("Styles", required: false)
 </head>
 <body>
-<header class="container py-3 d-flex align-items-center gap-3">
-    <a class="d-flex align-items-center gap-2 text-decoration-none" href="/">
-        <img src="/assets/logo/duongvan_logo_horizontal.svg" alt="Dương Văn" height="40" />
-        <strong>Dòng họ Dương Văn</strong>
-    </a>
+  <header class="header">
+    <div class="container bar">
+      <a class="brand" asp-area="" asp-controller="Home" asp-action="Index">
+        <img src="~/assets/logo/avatar.webp" alt="DHDV" />
+        <span class="t">Dòng họ Dương Văn</span>
+      </a>
+      <nav class="nav">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <a asp-controller="People" asp-action="Index">People</a>
+        <a asp-controller="Posts" asp-action="Index">Posts</a>
+        <a asp-controller="Albums" asp-action="Index">Albums</a>
+      </nav>
+    </div>
+  </header>
 
-    <nav class="navbar d-flex gap-3 ms-4">
-        <a href="/People">People</a>
-        <a href="/Albums">Albums</a>
-        <a href="/Posts">Posts</a>
-    </nav>
-
-    <form method="get" action="/Search" class="d-flex gap-2 ms-auto" style="max-width:420px">
-        <input name="q" class="form-control" placeholder="Tìm People / Albums / Posts…" />
-        <button class="btn btn-primary">Tìm</button>
-    </form>
-</header>
-
-<main class="container mb-5">
+  <main class="container">
     @RenderBody()
-</main>
+  </main>
 
-<footer class="container border-top py-3 text-muted">
-    © @DateTime.Now.Year Dòng họ Dương Văn
-</footer>
+  <footer class="footer">
+    <div class="container"> @DateTime.UtcNow.Year Dòng họ Dương Văn</div>
+  </footer>
 
-@RenderSection("Scripts", required: false)
+  <script src="~/js/site.min.js" asp-append-version="true"></script>
+  @RenderSection("Scripts", required: false)
 </body>
 </html>
