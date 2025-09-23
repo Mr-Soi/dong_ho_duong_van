@@ -61,10 +61,9 @@ services:
   smoker:
     image: curlimages/curl:8.10.1
     command: sh -c "while :; do d=$(date +%F_%T); curl -fsS http://web:8080/People >/dev/null && echo $$d OK || echo $$d FAIL; sleep 60; done | tee -a /logs/smoke_latest.log"
-    volumes:
-      - ./logs:/logs
-    depends_on: [web]
-    networks: [web]
+    volumes: [ "./logs:/logs" ]
+    depends_on: [ web ]
+    networks: [ web ]
     restart: unless-stopped
 
 

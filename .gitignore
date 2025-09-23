@@ -1,26 +1,11 @@
-﻿# dotnet
-**/bin/
-**/obj/
-*.user
-*.suo
-
-# publish artefacts
-publish/
-
-# uploads (giữ thư mục, bỏ ảnh)
-src/DHDV.Web/wwwroot/img/uploads/*
-!src/DHDV.Web/wwwroot/img/uploads/.gitkeep
-
-# backups, môi trường
+﻿.env
 *.bak
-.env*
-
-handoff/*.tar
-
-# large artefacts
-/handoff/*.tar
-/handoff/*.zip
-/publish/
-/backup/*.bak
-/db/*.zip
-logs/*.log
+*.zip
+logs/
+.db/
+compose*.yml
+.compos*effective*.yml
+web.env
+bin/
+obj/
+out/
