@@ -5,15 +5,22 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Dòng họ Dương Văn - thông tin gia phả, hình ảnh, bài viết.">
-  <meta property="og:title" content="Dòng họ Dương Văn">
-  <meta property="og:description" content="Trang thông tin chính thức của dòng họ Dương Văn.">
-  <meta property="og:url" content="https://donghoduongvan.com/">
+  @{
+    var ogTitle = (ViewData["OgTitle"] as string) ?? "Dòng họ Dương Văn";
+    var ogDesc  = (ViewData["OgDesc"]  as string) ?? "Trang thông tin chính thức của dòng họ Dương Văn.";
+    var ogImage = (ViewData["OgImage"] as string) ?? "/img/cover.webp";
+    var ogUrl   = (ViewData["OgUrl"]   as string) ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
+  }
+  <meta name="description" content="@ogDesc">
+  <meta property="og:title" content="@ogTitle">
+  <meta property="og:description" content="@ogDesc">
+  <meta property="og:url" content="@ogUrl">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="/img/cover.webp">
+  <meta property="og:image" content="@ogImage">
   <meta name="twitter:card" content="summary_large_image">
 
   <title>@title</title>
@@ -21,7 +28,7 @@
   <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/dhdv.mobile.css?v=2" />
   <link rel="stylesheet" href="~/css/site.ui-upgrade.css" asp-append-version="true" />
-
+  <link rel="canonical" href="https://donghoduongvan.com/" />
   @RenderSection("Styles", required: false)
 </head>
 <body>
