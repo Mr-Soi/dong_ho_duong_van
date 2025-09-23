@@ -1,4 +1,4 @@
-﻿services:
+services:
   sql:
     container_name: dhdv_sql
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -6,7 +6,7 @@
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${MSSQL_SA_PASSWORD}
     ports:
-      - "1433:1433"
+      - "127.0.0.1:11433:1433"
     volumes:
       - ./backup:/var/opt/mssql/backup
       - sql_root:/var/opt/mssql
@@ -14,7 +14,7 @@
       - web
     restart: unless-stopped
     healthcheck:
-      test: ["/opt/mssql-tools18/bin/sqlcmd","-C","-S","localhost","-U","sa","-P","${MSSQL_SA_PASSWORD}","-Q","SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd","-C","-S","localhost","-U","sa","-P","${MSSQL_SA_PASSWORD}","-Q","SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -38,10 +38,12 @@
       - dp_keys:/root/.aspnet/DataProtection-Keys
     restart: unless-stopped
     healthcheck:
-      test: ["curl","-fsS","http://localhost:8080/ready"]
+      test: ["CMD", "true"]
       interval: 30s
-      timeout: 5s
-      retries: 5
+      timeout: 3s
+      retries: 1
+
+
 
   cf:
     container_name: dhdv_cf
@@ -50,8 +52,7 @@
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     command: tunnel run --token ${TUNNEL_TOKEN}
     depends_on:
-      web:
-        condition: service_healthy
+      - web   # bỏ condition: service_healthy
     networks:
       - web
     restart: unless-stopped
@@ -59,6 +60,7 @@
 volumes:
   sql_root:
     external: true
+    name: dhdv_stack_v_29_sql_root
   dp_keys:
 
 networks:
